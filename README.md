@@ -10,7 +10,7 @@ git clone git@github.com:boxidau/rax-autoscaler.git
 virtualenv rax-autoscaler
 cd rax-autoscaler/
 source bin/activate
-pip install pyrax termcolor netifaces
+pip install pyrax termcolor netifaces six requests python-novaclient argparse
 cp config.include config.ini
 ```
 
