@@ -3,10 +3,10 @@ import pyrax
 import argparse
 import netifaces
 import time
+import os
 
 def autoscale(group, config, cluster_mode):
   au = pyrax.autoscale
-  cs = pyrax.cloudservers
   cm = pyrax.cloud_monitoring
 
   group_id = config.get(group, 'id')
@@ -35,16 +35,9 @@ def autoscale(group, config, cluster_mode):
   # cluster mode is when this script runs on all instances
   # rather than relying on cooldown periods we elect 2 masters from the AS group
   if cluster_mode:
-    # TODO use config drive to get UUID
-    node_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
-    servers = cs.servers.list()
-    node_id = None
-  
-    for server in servers:
-      if server.networks['public'][0] == node_ip:
-        node_id = server.id
-        break
-    
+
+    node_id = get_my_uuid()
+
     masters = []
 
     if len(sg_state['active']) == 1:
@@ -55,9 +48,6 @@ def autoscale(group, config, cluster_mode):
     else:
       common.log('ERROR', 'Unknown cluster state')
       exit(3)
-
-    # For testing
-    masters.append(node_id)
 
     if node_id is None:
       common.log('INFO', 'Could not find this server\'s node ID')
@@ -120,6 +110,24 @@ def autoscale(group, config, cluster_mode):
         common.log('ERROR', 'Cannot execute scale down policy')
     else:
       common.log('INFO', 'Cluster within target paramters')
+
+def get_my_uuid():
+  # TODO use config drive to get UUID
+
+  node_id = os.getenv('node_uuid')
+  if node_id is None:
+
+    node_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
+    cs = pyrax.cloudservers
+    servers = cs.servers.list()
+    node_id = None
+    
+    for server in servers:
+      if server.networks['public'][0] == node_ip:
+        os.environ['node_uuid'] = server.id
+        return server.id
+  else:
+    return node_id
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
