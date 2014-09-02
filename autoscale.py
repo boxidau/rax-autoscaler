@@ -10,13 +10,17 @@ def autoscale(group, config, cluster_mode):
   cm = pyrax.cloud_monitoring
 
   group_id = config.get(group, 'id')
-
+  
   sgs = au.list()
 
   # Find scaling group from config
   for pos, sg in enumerate(sgs):
     if sg.id == group_id:
       break
+  
+  if sg is None:
+    common.log('ERROR', 'ScalingGroup not found')
+    exit(1)
   
   sg_state = sg.get_state()
   
@@ -25,8 +29,8 @@ def autoscale(group, config, cluster_mode):
     common.log('ERROR', '0 Servers present in scaling group invalid configuration, exiting')
     exit(1)
 
-  common.log('INFO', 'Current active servers: ' + str(sg_state['active_capacity']))
-  common.log('INFO', 'Cluster mode: ' + str(cluster_mode))
+  common.log('INFO', 'Current Active Servers: ' + str(sg_state['active_capacity']))
+  common.log('INFO', 'Cluster Mode Enabled: ' + str(cluster_mode))
 
   # cluster mode is when this script runs on all instances
   # rather than relying on cooldown periods we elect 2 masters from the AS group
@@ -66,47 +70,56 @@ def autoscale(group, config, cluster_mode):
       exit(0)
 
   # Gather cluster statistics
-  metric_sum = 0
-  data_points = 0
+  check_type = config.get(group, 'check_type', 'agent.cpu')
+  metric_name = config.get(group, 'metric_name', 'usage_average')
+  
+  common.log('INFO', 'Gathering Monitoring Data')
 
+  results = []
+
+  # Get all CloudMonitoring entities on the account
   entities = cm.list_entities()
+  # TODO: spawn threads for each valid entity to make data collection faster
   for ent in entities:
+    # Check if the entity is also in the scaling group
     if ent.agent_id in sg_state['active']:  
       ent_checks = ent.list_checks()
+      # Loop through checks to find checks of the correct type
       for check in ent_checks:
-        if check.type == config.get(group, 'check_type', 'agent.cpu'):
-          metrics = check.list_metrics()
-          print metrics
-          for metric in metrics:
-            if metric.name == config.get(group, 'metric_name', 'usage_average'):
-              data = check.get_metric_data_points(metric.name, int(time.time())-300, int(time.time()), points=2)
-              if len(data) > 0:
-                point = len(data)-1
-                metric_sum += data[point]['average']
-                data_points += 1
+        if check.type == check_type:
+          data = check.get_metric_data_points(metric_name, int(time.time())-300, int(time.time()), points=2)
+          if len(data) > 0:
+            point = len(data)-1
+            common.log('INFO', 'Found metric for: ' + ent.name + ', value: ' + str(data[point]['average']))
+            results.append(float(data[point]['average']))
+            break
 
-  if data_points == 0:
+  if len(data) == 0:
     common.log('ERROR', 'No data available')
     exit(4)
   else:
-    average = metric_sum/data_points
+    average = sum(results)/len(results)
     scale_up_threshold = config.getfloat(group, 'scale_up_threshold')
     scale_down_threshold = config.getfloat(group, 'scale_down_threshold')
    
-    common.log('INFO', 'Metric at: ' + str(average))
+    common.log('INFO', 'Cluster average for ' + check_type + '(' + metric_name + ') at: ' + str(average))
     
     if average > scale_up_threshold:
-      common.log('INFO', 'Above Threshold - Scaling Up')
-      scale_policy = sg.get_policy(config.get(group, 'scale_up_policy'))
-      scale_policy.execute()
+      try:
+        common.log('INFO', 'Above Threshold - Scaling Up')
+        scale_policy = sg.get_policy(config.get(group, 'scale_up_policy'))
+        scale_policy.execute()
+      except:
+        common.log('ERROR', 'Cannot execute scale up policy')
     elif average < scale_down_threshold:
-      common.log('INFO', 'Below Threshold - Scaling Down')
-      scale_policy = sg.get_policy(config.get(group, 'scale_down_policy'))
-      scale_policy.execute()
+      try:
+        common.log('INFO', 'Below Threshold - Scaling Down')
+        scale_policy = sg.get_policy(config.get(group, 'scale_down_policy'))
+        scale_policy.execute()
+      except:
+        common.log('ERROR', 'Cannot execute scale down policy')
     else:
-      common.log('INFO', 'Metric in target')
-
-    print average
+      common.log('INFO', 'Cluster within target paramters')
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
