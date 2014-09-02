@@ -8,7 +8,7 @@ config_file = "config.ini"
 
 def log(level, message):
   if level == 'OK':
-    print(colored('[ OK ]', 'green'), "\t\t", message, file=sys.stderr)
+    print(colored('[  OK  ]', 'green'), "\t", message, file=sys.stderr)
   elif level == 'INFO':
     print(colored('[ INFO ]', 'blue'), "\t", message, file=sys.stderr)
   elif level == 'ERROR':
