@@ -70,8 +70,8 @@ def autoscale(group, config, cluster_mode):
       exit(0)
 
   # Gather cluster statistics
-  check_type = config.get(group, 'check_type', 'agent.cpu')
-  metric_name = config.get(group, 'metric_name', 'usage_average')
+  check_type = config.get(group, 'check_type', 'agent.load_average')
+  metric_name = config.get(group, 'metric_name', '1m')
   
   common.log('INFO', 'Gathering Monitoring Data')
 
