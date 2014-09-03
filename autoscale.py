@@ -47,7 +47,7 @@ def autoscale(group, config, cluster_mode):
       masters.append(sg_state['active'][1])
     else:
       common.log('ERROR', 'Unknown cluster state')
-      exit(3)
+      exit(1)
 
     if node_id in masters:
       common.log('INFO', 'Node is a master, continuing')
@@ -80,9 +80,9 @@ def autoscale(group, config, cluster_mode):
             results.append(float(data[point]['average']))
             break
 
-  if len(data) == 0:
+  if len(results) == 0:
     common.log('ERROR', 'No data available')
-    exit(4)
+    exit(1)
   else:
     average = sum(results)/len(results)
     scale_up_threshold = config.getfloat(group, 'scale_up_threshold')
@@ -106,6 +106,8 @@ def autoscale(group, config, cluster_mode):
         common.log('ERROR', 'Cannot execute scale down policy')
     else:
       common.log('INFO', 'Cluster within target paramters')
+    
+    common.log('OK', 'Policy execution completed')
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
