@@ -4,8 +4,8 @@ api_key = api_key
 
 [group0]
 id = autoscalegroupUUID
-scale-up-policy = scaleUpPolicyUUID
-scale-down-policy = scaleDownPolicyUUID
+scale_up_policy = scaleUpPolicyUUID
+scale_down_policy = scaleDownPolicyUUID
 
 check_type = agent.load_average
 metric_name = 1m
