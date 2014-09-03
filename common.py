@@ -3,6 +3,7 @@ import os, pyrax, sys
 import pyrax.exceptions as pexc
 from termcolor import colored
 import ConfigParser
+from subprocess import check_output
 
 config_file = "config.ini"
 
@@ -35,3 +36,8 @@ def get_config(group):
     return config
   else:
     raise Exception('Unknown config section') 
+
+def get_machine_uuid():
+  name = check_output('xenstore-read name', shell=True)
+  id = name.strip()
+  return id[9:]

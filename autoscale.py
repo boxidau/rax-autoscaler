@@ -36,8 +36,8 @@ def autoscale(group, config, cluster_mode):
   # rather than relying on cooldown periods we elect 2 masters from the AS group
   if cluster_mode:
 
-    node_id = get_my_uuid()
-
+    node_id = common.get_machine_uuid()
+  
     masters = []
 
     if len(sg_state['active']) == 1:
@@ -49,11 +49,7 @@ def autoscale(group, config, cluster_mode):
       common.log('ERROR', 'Unknown cluster state')
       exit(3)
 
-    if node_id is None:
-      common.log('INFO', 'Could not find this server\'s node ID')
-      common.log('ERROR', 'Cluster mode running on non-cluster member')
-      exit(2)
-    elif node_id in masters:
+    if node_id in masters:
       common.log('INFO', 'Node is a master, continuing')
     else:
       common.log('INFO', 'Node is not a master, nothing to do. Exiting')
@@ -110,19 +106,6 @@ def autoscale(group, config, cluster_mode):
         common.log('ERROR', 'Cannot execute scale down policy')
     else:
       common.log('INFO', 'Cluster within target paramters')
-
-def get_my_uuid():
-  # TODO use config drive to get UUID
-
-  node_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
-  cs = pyrax.cloudservers
-  servers = cs.servers.list()
-  node_id = None
-    
-  for server in servers:
-    if server.networks['public'][0] == node_ip:
-      os.environ['node_uuid'] = server.id
-      return server.id
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
