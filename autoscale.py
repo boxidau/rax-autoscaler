@@ -114,20 +114,15 @@ def autoscale(group, config, cluster_mode):
 def get_my_uuid():
   # TODO use config drive to get UUID
 
-  node_id = os.getenv('node_uuid')
-  if node_id is None:
-
-    node_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
-    cs = pyrax.cloudservers
-    servers = cs.servers.list()
-    node_id = None
+  node_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
+  cs = pyrax.cloudservers
+  servers = cs.servers.list()
+  node_id = None
     
-    for server in servers:
-      if server.networks['public'][0] == node_ip:
-        os.environ['node_uuid'] = server.id
-        return server.id
-  else:
-    return node_id
+  for server in servers:
+    if server.networks['public'][0] == node_ip:
+      os.environ['node_uuid'] = server.id
+      return server.id
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
