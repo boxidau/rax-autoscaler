@@ -3,7 +3,7 @@ import os, pyrax, sys
 import pyrax.exceptions as pexc
 from termcolor import colored
 import ConfigParser
-from subprocess import check_output
+import subprocess
 
 path = os.path.dirname(os.path.realpath(__file__))
 config_file = path + "/config.ini"
@@ -39,6 +39,6 @@ def get_config(group):
     raise Exception('Unknown config section') 
 
 def get_machine_uuid():
-  name = check_output('xenstore-read name', shell=True)
+  name = subprocess.Popen(['xenstore-read name'], shell=True, stdout=subprocess.PIPE).communicate()[0]
   id = name.strip()
   return id[9:]
