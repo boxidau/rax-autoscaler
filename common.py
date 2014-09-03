@@ -5,7 +5,8 @@ from termcolor import colored
 import ConfigParser
 from subprocess import check_output
 
-config_file = "config.ini"
+path = os.path.dirname(os.path.realpath(__file__))
+config_file = path + "/config.ini"
 
 def log(level, message):
   if level == 'OK':
