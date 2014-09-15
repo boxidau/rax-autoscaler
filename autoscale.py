@@ -1,7 +1,6 @@
 import common
 import pyrax
 import argparse
-import netifaces
 import time
 import os
 
