@@ -1,15 +1,18 @@
 import common
 import pyrax
 import argparse
-import netifaces
 import time
 import os
+import sys
+import logging.config
+from colouredconsolehandler import ColouredConsoleHandler
+from auth import Auth
 
 def autoscale(group, config, cluster_mode):
   au = pyrax.autoscale
   cm = pyrax.cloud_monitoring
 
-  group_id = config.get(group, 'id')
+  group_id = config.get(group, 'GROUP_ID')
   
   sgs = au.list()
 
@@ -19,18 +22,18 @@ def autoscale(group, config, cluster_mode):
       break
   
   if sg is None:
-    common.log('ERROR', 'ScalingGroup not found')
+    logger.error('ScalingGroup not found')
     exit(1)
   
   sg_state = sg.get_state()
   
   # Make sure there is atleast one instance in the AS group, if < 1 we cannot gauge the metrics of nothing
   if sg_state['active_capacity'] < 1:
-    common.log('ERROR', '0 Servers present in scaling group invalid configuration, exiting')
+    logger.error('0 Servers present in scaling group invalid configuration, exiting')
     exit(1)
 
-  common.log('INFO', 'Current Active Servers: ' + str(sg_state['active_capacity']))
-  common.log('INFO', 'Cluster Mode Enabled: ' + str(cluster_mode))
+  logger.info('Current Active Servers: ' + str(sg_state['active_capacity']))
+  logger.info('Cluster Mode Enabled: ' + str(cluster_mode))
 
   # cluster mode is when this script runs on all instances
   # rather than relying on cooldown periods we elect 2 masters from the AS group
@@ -46,20 +49,20 @@ def autoscale(group, config, cluster_mode):
       masters.append(sg_state['active'][0])
       masters.append(sg_state['active'][1])
     else:
-      common.log('ERROR', 'Unknown cluster state')
+      logger.info('Unknown cluster state')
       exit(1)
 
     if node_id in masters:
-      common.log('INFO', 'Node is a master, continuing')
+      logger.info('Node is a master, continuing')
     else:
-      common.log('INFO', 'Node is not a master, nothing to do. Exiting')
+      logger.info('Node is not a master, nothing to do. Exiting')
       exit(0)
 
   # Gather cluster statistics
-  check_type = config.get(group, 'check_type', 'agent.load_average')
-  metric_name = config.get(group, 'metric_name', '1m')
+  check_type = config.get(group, 'CHECK_TYPE', 'agent.load_average')
+  metric_name = config.get(group, 'METRIC_NAME', '1m')
   
-  common.log('INFO', 'Gathering Monitoring Data')
+  logger.info('Gathering Monitoring Data')
 
   results = []
 
@@ -76,55 +79,84 @@ def autoscale(group, config, cluster_mode):
           data = check.get_metric_data_points(metric_name, int(time.time())-300, int(time.time()), points=2)
           if len(data) > 0:
             point = len(data)-1
-            common.log('INFO', 'Found metric for: ' + ent.name + ', value: ' + str(data[point]['average']))
+            logger.info('Found metric for: ' + ent.name + ', value: ' + str(data[point]['average']))
             results.append(float(data[point]['average']))
             break
 
   if len(results) == 0:
-    common.log('ERROR', 'No data available')
+    logger.error('No data available')
     exit(1)
   else:
     average = sum(results)/len(results)
-    scale_up_threshold = config.getfloat(group, 'scale_up_threshold')
-    scale_down_threshold = config.getfloat(group, 'scale_down_threshold')
+    scale_up_threshold = config.getfloat(group, 'SCALE_UP_THRESHOLD')
+    scale_down_threshold = config.getfloat(group, 'SCALE_DOWN_THRESHOLD')
    
-    common.log('INFO', 'Cluster average for ' + check_type + '(' + metric_name + ') at: ' + str(average))
+    logger.info('Cluster average for ' + check_type + '(' + metric_name + ') at: ' + str(average))
     
     if average > scale_up_threshold:
       try:
-        common.log('INFO', 'Above Threshold - Scaling Up')
-        scale_policy = sg.get_policy(config.get(group, 'scale_up_policy'))
+        logger.info('Above Threshold - Scaling Up')
+        scale_policy = sg.get_policy(config.get(group, 'SCALE_UP_POLICY'))
         scale_policy.execute()
       except:
-        common.log('ERROR', 'Cannot execute scale up policy')
+        logger.warning('Cannot execute scale up policy')
     elif average < scale_down_threshold:
       try:
-        common.log('INFO', 'Below Threshold - Scaling Down')
-        scale_policy = sg.get_policy(config.get(group, 'scale_down_policy'))
+        logger.info('Below Threshold - Scaling Down')
+        scale_policy = sg.get_policy(config.get(group, 'SCALE_DOWN_POLICY'))
         scale_policy.execute()
       except:
-        common.log('ERROR', 'Cannot execute scale down policy')
+        logger.warning('Cannot execute scale down policy')
     else:
-      common.log('INFO', 'Cluster within target paramters')
+      logger.info('Cluster within target paramters')
     
-    common.log('OK', 'Policy execution completed')
+    logger.info('Policy execution completed')
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
-  parser.add_argument('--region', required=False,
-    help='The region to build the servers',
-    choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'],
-    default=pyrax.default_region)
-  parser.add_argument('--as-group', required=True,
-    help='The autoscale group config ID')
+
+  parser.add_argument('--as-group', required=True, help='The autoscale group config ID')
+  parser.add_argument('--os-username', required=False, help='Rackspace Cloud user name')
+  parser.add_argument('--os-password', required=False, help='Rackspace Cloud account API key')
+  parser.add_argument('--os-region-name', required=False, help='The region to build the servers',
+  choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
   parser.add_argument('--cluster', required=False, default=False, action='store_true')
 
   args = vars(parser.parse_args())
-  common.authenticate(args['region'])
 
+  #LOGGING
+  logging_conf_file = 'logging.conf'   
+  logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
+  logging.config.fileConfig(logging_conf_file)
+  logger = logging.getLogger(__name__)
+  
+  for arg in args:
+        if arg == 'cluster':
+		if args[arg] == True: 
+  			logger.debug('argument provided by user ' + arg + ' : ' + 'True')
+	else:
+        	if args[arg] != None:
+  				logger.debug('argument provided by user ' + arg + ' : ' + args[arg])
+	
+  failed = 0 
   try:
     config = common.get_config(args['as_group'])
   except:
-    common.log('ERROR', 'Unknown config section ' + args['as_group'])
+    logger.error('Unknown config section ' + args['as_group'])
+    failed = 1
+ 
+  try:
+    username = common.get_user_value(args, config, 'os_username')
+    api_key = common.get_user_value(args, config, 'os_password')
+    region = common.get_user_value(args, config, 'os_region_name')
+  except Exception, err:
+    logger.error(err)
+    failed = 1
   
-  autoscale(args['as_group'], config, args['cluster'])
+  if failed == 0:
+    session = Auth(username, api_key, region)
+    
+    if session.authenticate() == True:
+      autoscale(args['as_group'], config, args['cluster'])
+    else:
+      logger.error('ERROR', 'Authentication failed')
