@@ -1,14 +1,16 @@
 [rackspace_cloud]
-username = api_username
-api_key = api_key
+OS_USERNAME = api_username
+OS_PASSWORD = api_key
+OS_REGION_NAME = os_region_name 
+
 
 [group0]
-id = autoscalegroupUUID
-scale_up_policy = scaleUpPolicyUUID
-scale_down_policy = scaleDownPolicyUUID
+GROUP_ID = autoscalegroupUUID
+SCALE_UP_POLICY = scaleUpPolicyUUID
+SCALE_DOWN_POLICY = scaleDownPolicyUUID
 
-check_type = agent.load_average
-metric_name = 1m
+CHECK_TYPE = agent.load_average
+METRIC_NAME = 1m
 
-scale_up_threshold = 0.7
-scale_down_threshold = 0.1
+SCALE_UP_THRESHOLD = 0.7
+SCALE_DOWN_THRESHOLD = 0.1
