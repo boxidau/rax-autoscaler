@@ -7,8 +7,13 @@ import subprocess
 import datetime
 import json
 
-path = os.path.dirname(os.path.realpath(__file__))
-config_file = path + "/config.ini"
+def check_file(fname):
+  file_abspath = os.path.abspath(fname)
+  if os.path.isfile(file_abspath) and os.access(file_abspath, os.R_OK):
+    return file_abspath 
+  else:
+    #Either file is missing or is not readable
+    return
 
 def log(level, message):
   if level == 'OK':
@@ -20,7 +25,7 @@ def log(level, message):
   else:
     print(message)
 
-def get_config(group):
+def get_config(config_file, group):
   config = ConfigParser.ConfigParser()
   config.read(config_file)
   if config.has_section(group):
