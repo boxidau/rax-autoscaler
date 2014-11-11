@@ -59,7 +59,7 @@ def get_scaling_group(group, config):
     logger.info('Current Active Servers: ' + str(scalingGroup.get_state()['active_capacity']))
     return scalingGroup
 
-def autoscale(group, config, cluster_mode):
+def autoscale(group, config, args):
   au = pyrax.autoscale
 
   scalingGroup = get_scaling_group(group, config)
@@ -70,9 +70,9 @@ def autoscale(group, config, cluster_mode):
     #TODO: Handle issue with server id for which cloud monitoring add check return null
     rv = cloudmonitor.add_cm_cpu_check(s_id)
    
-  logger.info('Cluster Mode Enabled: ' + str(cluster_mode))
+  logger.info('Cluster Mode Enabled: ' + str(args['cluster']))
 
-  if cluster_mode:
+  if args['cluster']:
     rv = is_node_master(scalingGroup)
     if rv is None :
        #Not a master, no need to proceed further
@@ -119,17 +119,25 @@ def autoscale(group, config, cluster_mode):
     if average > scale_up_threshold:
       try:
         logger.info('Above Threshold - Scaling Up')
-        scale_policy = sg.get_policy(config.get(group, 'SCALE_UP_POLICY'))
-        scale_policy.execute()
+        scale_policy = scalingGroup.get_policy(config.get(group, 'SCALE_UP_POLICY'))
+        if not args['dry_run']:
+          scale_policy.execute()
+        else:
+          logger.info('Scale up prevented by --dry-run')
       except:
         logger.warning('Cannot execute scale up policy')
+
     elif average < scale_down_threshold:
       try:
         logger.info('Below Threshold - Scaling Down')
-        scale_policy = sg.get_policy(config.get(group, 'SCALE_DOWN_POLICY'))
-        scale_policy.execute()
+        scale_policy = scalingGroup.get_policy(config.get(group, 'SCALE_DOWN_POLICY'))
+        if not args['dry_run']:
+          scale_policy.execute()
+        else:
+          logger.info('Scale down prevented by --dry-run')
       except:
         logger.warning('Cannot execute scale down policy')
+
     else:
       logger.info('Cluster within target paramters')
     
@@ -145,6 +153,8 @@ if __name__ == '__main__':
   parser.add_argument('--os-region-name', required=False, help='The region to build the servers',
   choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
   parser.add_argument('--cluster', required=False, default=False, action='store_true')
+  parser.add_argument('--dry-run', required=False, default=False, action='store_true',
+    help='Do not actually perform any scaling operations or call webhooks')
 
   args = vars(parser.parse_args())
   
@@ -180,7 +190,7 @@ if __name__ == '__main__':
     session = Auth(username, api_key, region)
 
     if session.authenticate() == True:
-        rv = autoscale(args['as_group'], config, args['cluster'])
+        rv = autoscale(args['as_group'], config, args)
         if rv is None:
           log_file = logger.root.handlers[0].baseFilename
           if log_file is None:
