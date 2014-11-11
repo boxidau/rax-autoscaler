@@ -166,10 +166,11 @@ if __name__ == '__main__':
     else:
       if args[arg] != None:
         logger.debug('argument provided by user ' + arg + ' : ' + args[arg])
-      try:
-        config = common.get_config(config_file, args['as_group'])
-      except:
-        exit_with_error('Unknown config section ' + args['as_group'])
+  
+  try:
+    config = common.get_config(config_file, args['as_group'])
+  except:
+    exit_with_error('Unknown config section ' + args['as_group'])
 
   failed = 0 
   try:
