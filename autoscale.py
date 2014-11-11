@@ -10,20 +10,22 @@ from auth import Auth
 import cloudmonitor
 
 def exit_with_error(msg):
-          if msg is None:
-            try:
-              logger.info('rax-autoscale completed with an error')
-            except:
-              print ('(info) rax-autoscale completed with an error')
-          else:
-            try:
-              logger.error(msg)
-              logger.info('rax-autoscale completed with an error')
-            except:  
-              print ('(error) ' + msg)
-              print ('(info) rax-autoscale completed with an error')
-          
-          exit(1)
+    if msg is None:
+      try:
+        log_file = logger.root.handlers[0].baseFilename
+        logger.info('completed with an error: ' + log_file)
+      except:
+        print ('(info) rax-autoscale completed with an error')
+    else:
+      try:
+        logger.error(msg)
+        log_file = logger.root.handlers[0].baseFilename
+        logger.info('completed with an error: '+ log_file)
+      except:  
+        print ('(error) ' + msg)
+        print ('(info) rax-autoscale completed with an error')
+    
+    exit(1)
     
 def is_node_master(scalingGroup):
     masters = []
@@ -185,7 +187,11 @@ if __name__ == '__main__':
     if session.authenticate() == True:
         rv = autoscale(args['as_group'], config, args['cluster'])
         if rv is None:
-          logger.info('rax-autoscale completed successfully')
+          log_file = logger.root.handlers[0].baseFilename
+          if log_file is None:
+            logger.info('completed successfull')
+          else:  
+            logger.info('completed successfully: '+log_file)
         else:
           exit_with_error()
     else:
