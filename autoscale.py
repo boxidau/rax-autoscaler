@@ -7,71 +7,76 @@ import sys
 import logging.config
 from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
+import cloudmonitor
 
-def autoscale(group, config, cluster_mode):
-  au = pyrax.autoscale
-  cm = pyrax.cloud_monitoring
-
-  group_id = config.get(group, 'GROUP_ID')
-  
-  sgs = au.list()
-
-  # Find scaling group from config
-  for pos, sg in enumerate(sgs):
-    if sg.id == group_id:
-      break
-  
-  if sg is None:
-    logger.error('ScalingGroup not found')
-    exit(1)
-  
-  sg_state = sg.get_state()
-  
-  # Make sure there is atleast one instance in the AS group, if < 1 we cannot gauge the metrics of nothing
-  if sg_state['active_capacity'] < 1:
-    logger.error('0 Servers present in scaling group invalid configuration, exiting')
-    exit(1)
-
-  logger.info('Current Active Servers: ' + str(sg_state['active_capacity']))
-  logger.info('Cluster Mode Enabled: ' + str(cluster_mode))
-
-  # cluster mode is when this script runs on all instances
-  # rather than relying on cooldown periods we elect 2 masters from the AS group
-  if cluster_mode:
-
-    node_id = common.get_machine_uuid()
-  
+def is_node_master(scalingGroup):
     masters = []
-
+    node_id = common.get_machine_uuid()
+    sg_state = scalingGroup.get_state()
     if len(sg_state['active']) == 1:
       masters.push(sg_state['active'][0])
     elif len(sg_state['active']) > 1:
       masters.append(sg_state['active'][0])
       masters.append(sg_state['active'][1])
     else:
-      logger.info('Unknown cluster state')
-      exit(1)
+      logger.error('Unknown cluster state')
+      return 1
 
     if node_id in masters:
       logger.info('Node is a master, continuing')
+      return 2
     else:
       logger.info('Node is not a master, nothing to do. Exiting')
-      exit(0)
+      return
+  
+def get_scaling_group(group, config):
+  scalingGroup = cloudmonitor.scaling_group_servers(config.get(group, 'GROUP_ID'))
+  # Check active server(s) in scaling group
+  if len(scalingGroup.get_state()['active']) == 0:
+    return
+  else:
+    logger.info('Server(s) in scaling group: %s' %
+                  ', '.join(['(%s, %s)' % (cloudmonitor.get_server_name(s_id), s_id)
+                                        for s_id in scalingGroup.get_state()['active']]))
+  logger.info('Current Active Servers: ' + str(scalingGroup.get_state()['active_capacity']))
+  return scalingGroup
+  
+def autoscale(group, config, cluster_mode):
+  au = pyrax.autoscale
+
+  scalingGroup = get_scaling_group(group, config)
+  if scalingGroup is None:
+      return 1
+   
+  for s_id in scalingGroup.get_state()['active']:
+    #TODO: Handle issue with server id for which cloud monitoring add check return null
+    rv = cloudmonitor.add_cm_cpu_check(s_id)
+   
+  logger.info('Cluster Mode Enabled: ' + str(cluster_mode))
+
+  if cluster_mode:
+    rv = is_node_master(scalingGroup)
+    if rv is None :
+       #Not a master, no need to proceed further
+       return
+    if rv == 1 :
+        #Cluster state unknown return error.
+        return 1 
 
   # Gather cluster statistics
   check_type = config.get(group, 'CHECK_TYPE', 'agent.load_average')
   metric_name = config.get(group, 'METRIC_NAME', '1m')
-  
+ 
   logger.info('Gathering Monitoring Data')
 
   results = []
-
+  cm = pyrax.cloud_monitoring
   # Get all CloudMonitoring entities on the account
   entities = cm.list_entities()
   # TODO: spawn threads for each valid entity to make data collection faster
   for ent in entities:
     # Check if the entity is also in the scaling group
-    if ent.agent_id in sg_state['active']:  
+    if ent.agent_id in scalingGroup.get_state()['active']:  
       ent_checks = ent.list_checks()
       # Loop through checks to find checks of the correct type
       for check in ent_checks:
@@ -85,7 +90,7 @@ def autoscale(group, config, cluster_mode):
 
   if len(results) == 0:
     logger.error('No data available')
-    exit(1)
+    return 1
   else:
     average = sum(results)/len(results)
     scale_up_threshold = config.getfloat(group, 'SCALE_UP_THRESHOLD')
@@ -157,6 +162,11 @@ if __name__ == '__main__':
     session = Auth(username, api_key, region)
     
     if session.authenticate() == True:
-      autoscale(args['as_group'], config, args['cluster'])
+        rv = autoscale(args['as_group'], config, args['cluster'])
+        if rv is None:
+          logger.info('rax-autoscale completed successfully')
+        else:
+          logger.info('rax-autoscale completed with an error')
+          exit(1)
     else:
       logger.error('ERROR', 'Authentication failed')
