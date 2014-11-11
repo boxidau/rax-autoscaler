@@ -160,12 +160,7 @@ if __name__ == '__main__':
   logger = logging.getLogger(__name__)
 
   for arg in args:
-    if arg == 'cluster':
-      if args[arg] == True:
-        logger.debug('argument provided by user ' + arg + ' : ' + 'True')
-    else:
-      if args[arg] != None:
-        logger.debug('argument provided by user ' + arg + ' : ' + args[arg])
+    logger.debug('argument provided by user ' + arg + ' : ' + str(args[arg]))
   
   try:
     config = common.get_config(config_file, args['as_group'])
