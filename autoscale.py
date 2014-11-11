@@ -10,43 +10,43 @@ from auth import Auth
 import cloudmonitor
 
 def exit_with_error(msg):
-    if msg is None:
-      try:
-        log_file = logger.root.handlers[0].baseFilename
-        logger.info('completed with an error: ' + log_file)
-      except:
-        print ('(info) rax-autoscale completed with an error')
-    else:
-      try:
-        logger.error(msg)
-        log_file = logger.root.handlers[0].baseFilename
-        logger.info('completed with an error: '+ log_file)
-      except:  
-        print ('(error) ' + msg)
-        print ('(info) rax-autoscale completed with an error')
-    
-    exit(1)
-    
-def is_node_master(scalingGroup):
-    masters = []
-    node_id = common.get_machine_uuid()
-    sg_state = scalingGroup.get_state()
-    if len(sg_state['active']) == 1:
-      masters.push(sg_state['active'][0])
-    elif len(sg_state['active']) > 1:
-      masters.append(sg_state['active'][0])
-      masters.append(sg_state['active'][1])
-    else:
-      logger.error('Unknown cluster state')
-      return 1
+  if msg is None:
+    try:
+      log_file = logger.root.handlers[0].baseFilename
+      logger.info('completed with an error: ' + log_file)
+    except:
+      print ('(info) rax-autoscale completed with an error')
+  else:
+    try:
+      logger.error(msg)
+      log_file = logger.root.handlers[0].baseFilename
+      logger.info('completed with an error: '+ log_file)
+    except:  
+      print ('(error) ' + msg)
+      print ('(info) rax-autoscale completed with an error')
 
-    if node_id in masters:
-      logger.info('Node is a master, continuing')
-      return 2
-    else:
-      logger.info('Node is not a master, nothing to do. Exiting')
-      return
-  
+  exit(1)
+
+def is_node_master(scalingGroup):
+  masters = []
+  node_id = common.get_machine_uuid()
+  sg_state = scalingGroup.get_state()
+  if len(sg_state['active']) == 1:
+    masters.push(sg_state['active'][0])
+  elif len(sg_state['active']) > 1:
+    masters.append(sg_state['active'][0])
+    masters.append(sg_state['active'][1])
+  else:
+    logger.error('Unknown cluster state')
+  return 1
+
+  if node_id in masters:
+    logger.info('Node is a master, continuing')
+    return 2
+  else:
+    logger.info('Node is not a master, nothing to do. Exiting')
+  return
+
 def get_scaling_group(group, config):
   scalingGroup = cloudmonitor.scaling_group_servers(config.get(group, 'GROUP_ID'))
   # Check active server(s) in scaling group
@@ -56,9 +56,9 @@ def get_scaling_group(group, config):
     logger.info('Server(s) in scaling group: %s' %
                   ', '.join(['(%s, %s)' % (cloudmonitor.get_server_name(s_id), s_id)
                                         for s_id in scalingGroup.get_state()['active']]))
-  logger.info('Current Active Servers: ' + str(scalingGroup.get_state()['active_capacity']))
-  return scalingGroup
-  
+    logger.info('Current Active Servers: ' + str(scalingGroup.get_state()['active_capacity']))
+    return scalingGroup
+
 def autoscale(group, config, cluster_mode):
   au = pyrax.autoscale
 
@@ -84,7 +84,7 @@ def autoscale(group, config, cluster_mode):
   # Gather cluster statistics
   check_type = config.get(group, 'CHECK_TYPE', 'agent.load_average')
   metric_name = config.get(group, 'METRIC_NAME', '1m')
- 
+
   logger.info('Gathering Monitoring Data')
 
   results = []
@@ -113,9 +113,9 @@ def autoscale(group, config, cluster_mode):
     average = sum(results)/len(results)
     scale_up_threshold = config.getfloat(group, 'SCALE_UP_THRESHOLD')
     scale_down_threshold = config.getfloat(group, 'SCALE_DOWN_THRESHOLD')
-   
+
     logger.info('Cluster average for ' + check_type + '(' + metric_name + ') at: ' + str(average))
-    
+
     if average > scale_up_threshold:
       try:
         logger.info('Above Threshold - Scaling Up')
@@ -152,26 +152,25 @@ if __name__ == '__main__':
   config_file = common.check_file(args['config_file'])
   if config_file is None:
     exit_with_error("Either file is missing or is not readable: '" + args['config_file']+"'")
- 
+
   #LOGGING
   logging_conf_file = 'logging.conf'   
   logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
   logging.config.fileConfig(logging_conf_file)
   logger = logging.getLogger(__name__)
-  
+
   for arg in args:
-        if arg == 'cluster':
-		if args[arg] == True: 
-  			logger.debug('argument provided by user ' + arg + ' : ' + 'True')
-	else:
-        	if args[arg] != None:
-  				logger.debug('argument provided by user ' + arg + ' : ' + args[arg])
-	
-  try:
-    config = common.get_config(config_file, args['as_group'])
-  except:
-    exit_with_error('Unknown config section ' + args['as_group'])
- 
+    if arg == 'cluster':
+      if args[arg] == True:
+        logger.debug('argument provided by user ' + arg + ' : ' + 'True')
+    else:
+      if args[arg] != None:
+        logger.debug('argument provided by user ' + arg + ' : ' + args[arg])
+      try:
+        config = common.get_config(config_file, args['as_group'])
+      except:
+        exit_with_error('Unknown config section ' + args['as_group'])
+
   failed = 0 
   try:
     username = common.get_user_value(args, config, 'os_username')
@@ -180,10 +179,10 @@ if __name__ == '__main__':
   except Exception, err:
     logger.error(err)
     failed = 1
-  
+
   if failed == 0:
     session = Auth(username, api_key, region)
-    
+
     if session.authenticate() == True:
         rv = autoscale(args['as_group'], config, args['cluster'])
         if rv is None:
