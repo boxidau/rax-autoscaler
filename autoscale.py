@@ -9,6 +9,22 @@ from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 import cloudmonitor
 
+def exit_with_error(msg):
+          if msg is None:
+            try:
+              logger.info('rax-autoscale completed with an error')
+            except:
+              print ('(info) rax-autoscale completed with an error')
+          else:
+            try:
+              logger.error(msg)
+              logger.info('rax-autoscale completed with an error')
+            except:  
+              print ('(error) ' + msg)
+              print ('(info) rax-autoscale completed with an error')
+          
+          exit(1)
+    
 def is_node_master(scalingGroup):
     masters = []
     node_id = common.get_machine_uuid()
@@ -123,12 +139,18 @@ if __name__ == '__main__':
   parser.add_argument('--as-group', required=True, help='The autoscale group config ID')
   parser.add_argument('--os-username', required=False, help='Rackspace Cloud user name')
   parser.add_argument('--os-password', required=False, help='Rackspace Cloud account API key')
+  parser.add_argument('--config-file', required=False, default='config.ini', help='The autoscale configuration .ini file (default:config.ini)'),
   parser.add_argument('--os-region-name', required=False, help='The region to build the servers',
   choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
   parser.add_argument('--cluster', required=False, default=False, action='store_true')
 
   args = vars(parser.parse_args())
-
+  
+  #CONFIG.ini
+  config_file = common.check_file(args['config_file'])
+  if config_file is None:
+    exit_with_error("Either file is missing or is not readable: '" + args['config_file']+"'")
+ 
   #LOGGING
   logging_conf_file = 'logging.conf'   
   logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
@@ -143,13 +165,12 @@ if __name__ == '__main__':
         	if args[arg] != None:
   				logger.debug('argument provided by user ' + arg + ' : ' + args[arg])
 	
-  failed = 0 
   try:
-    config = common.get_config(args['as_group'])
+    config = common.get_config(config_file, args['as_group'])
   except:
-    logger.error('Unknown config section ' + args['as_group'])
-    failed = 1
+    exit_with_error('Unknown config section ' + args['as_group'])
  
+  failed = 0 
   try:
     username = common.get_user_value(args, config, 'os_username')
     api_key = common.get_user_value(args, config, 'os_password')
@@ -166,7 +187,6 @@ if __name__ == '__main__':
         if rv is None:
           logger.info('rax-autoscale completed successfully')
         else:
-          logger.info('rax-autoscale completed with an error')
-          exit(1)
+          exit_with_error()
     else:
-      logger.error('ERROR', 'Authentication failed')
+      exit_with_error('Authentication failed')
