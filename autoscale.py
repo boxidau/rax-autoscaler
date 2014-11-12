@@ -8,6 +8,7 @@ import logging.config
 from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 import cloudmonitor
+from version import return_version
 
 def exit_with_error(msg):
   if msg is None:
@@ -145,6 +146,7 @@ if __name__ == '__main__':
   parser.add_argument('--os-region-name', required=False, help='The region to build the servers',
   choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
   parser.add_argument('--cluster', required=False, default=False, action='store_true')
+  parser.add_argument('--version', action='version', help='Show version number', version=return_version())
 
   args = vars(parser.parse_args())
   
@@ -159,9 +161,12 @@ if __name__ == '__main__':
   logging.config.fileConfig(logging_conf_file)
   logger = logging.getLogger(__name__)
 
+  #Show Version
+  logger.info(return_version())
+
   for arg in args:
     logger.debug('argument provided by user ' + arg + ' : ' + str(args[arg]))
-  
+
   try:
     config = common.get_config(config_file, args['as_group'])
   except:
