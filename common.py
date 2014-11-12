@@ -32,8 +32,13 @@ def check_file(fname):
   if os.path.isfile(file_abspath) and os.access(file_abspath, os.R_OK):
     return file_abspath 
   else:
-    #Either file is missing or is not readable
-    return
+    preDefinedPath='/etc/rax-autoscaler/'+fname
+    #Check in /etc/rax-autoscaler/config path
+    if os.path.isfile(preDefinedPath) and os.access(preDefinedPath, os.R_OK):
+      return preDefinedPath
+  
+  #Either file is missing or is not readable
+  return
 
 def log(level, message):
   if level == 'OK':
