@@ -1,3 +1,23 @@
+# Encoding: utf-8
+#
+# rax-autoscaler
+#
+# Copyright 2014, Rackspace, US Inc.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 import common
 import pyrax
 import argparse
@@ -60,7 +80,7 @@ def get_scaling_group(group, config):
     logger.info('Current Active Servers: ' + str(scalingGroup.get_state()['active_capacity']))
     return scalingGroup
 
-def autoscale(group, config, cluster_mode):
+def autoscale(group, config, args):
   au = pyrax.autoscale
 
   scalingGroup = get_scaling_group(group, config)
@@ -71,9 +91,9 @@ def autoscale(group, config, cluster_mode):
     #TODO: Handle issue with server id for which cloud monitoring add check return null
     rv = cloudmonitor.add_cm_cpu_check(s_id)
    
-  logger.info('Cluster Mode Enabled: ' + str(cluster_mode))
+  logger.info('Cluster Mode Enabled: ' + str(args['cluster']))
 
-  if cluster_mode:
+  if args['cluster']:
     rv = is_node_master(scalingGroup)
     if rv is None :
        #Not a master, no need to proceed further
@@ -120,21 +140,32 @@ def autoscale(group, config, cluster_mode):
     if average > scale_up_threshold:
       try:
         logger.info('Above Threshold - Scaling Up')
-        scale_policy = sg.get_policy(config.get(group, 'SCALE_UP_POLICY'))
-        scale_policy.execute()
+        scale_policy_id = config.get(group, 'SCALE_UP_POLICY')
+        scale_policy = scalingGroup.get_policy(scale_policy_id)
+        if not args['dry_run']:
+          scale_policy.execute()
+        else:
+          logger.info('Scale up prevented by --dry-run')
+        logger.info('Scale up policy executed (' + scale_policy_id + ')')
       except:
         logger.warning('Cannot execute scale up policy')
+
     elif average < scale_down_threshold:
       try:
         logger.info('Below Threshold - Scaling Down')
-        scale_policy = sg.get_policy(config.get(group, 'SCALE_DOWN_POLICY'))
-        scale_policy.execute()
+        scale_policy_id = config.get(group, 'SCALE_DOWN_POLICY')
+        scale_policy = scalingGroup.get_policy(scale_policy_id)
+        if not args['dry_run']:
+          scale_policy.execute()
+        else:
+          logger.info('Scale down prevented by --dry-run')
+        logger.info('Scale down policy executed (' + scale_policy_id + ')')
+
       except:
         logger.warning('Cannot execute scale down policy')
+
     else:
       logger.info('Cluster within target paramters')
-    
-    logger.info('Policy execution completed')
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -147,6 +178,8 @@ if __name__ == '__main__':
   choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
   parser.add_argument('--cluster', required=False, default=False, action='store_true')
   parser.add_argument('--version', action='version', help='Show version number', version=return_version())
+  parser.add_argument('--dry-run', required=False, default=False, action='store_true',
+    help='Do not actually perform any scaling operations or call webhooks')
 
   args = vars(parser.parse_args())
   
@@ -185,7 +218,7 @@ if __name__ == '__main__':
     session = Auth(username, api_key, region)
 
     if session.authenticate() == True:
-        rv = autoscale(args['as_group'], config, args['cluster'])
+        rv = autoscale(args['as_group'], config, args)
         if rv is None:
           log_file = logger.root.handlers[0].baseFilename
           if log_file is None:
