@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-version = "0.0"
-
+VERSION = "0.0.15"
 
 def return_version():
-  return 'rax-autoscaler version ' + version + ' Copyright @ 2014 Rackspace' 
+  return "rax-autoscaler v%s -- Copyright @ 2014 Rackspace" % VERSION
+

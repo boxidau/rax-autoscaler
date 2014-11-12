@@ -229,3 +229,4 @@ if __name__ == '__main__':
           exit_with_error()
     else:
       exit_with_error('Authentication failed')
+
