@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-version = "0.1"
+version = "0.0"
 
 
 def return_version():
