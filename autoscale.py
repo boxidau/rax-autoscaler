@@ -119,29 +119,32 @@ def autoscale(group, config, args):
     if average > scale_up_threshold:
       try:
         logger.info('Above Threshold - Scaling Up')
-        scale_policy = scalingGroup.get_policy(config.get(group, 'SCALE_UP_POLICY'))
+        scale_policy_id = config.get(group, 'SCALE_UP_POLICY')
+        scale_policy = scalingGroup.get_policy(scale_policy_id)
         if not args['dry_run']:
           scale_policy.execute()
         else:
           logger.info('Scale up prevented by --dry-run')
+        logger.info('Scale up policy executed (' + scale_policy_id + ')')
       except:
         logger.warning('Cannot execute scale up policy')
 
     elif average < scale_down_threshold:
       try:
         logger.info('Below Threshold - Scaling Down')
-        scale_policy = scalingGroup.get_policy(config.get(group, 'SCALE_DOWN_POLICY'))
+        scale_policy_id = config.get(group, 'SCALE_DOWN_POLICY')
+        scale_policy = scalingGroup.get_policy(scale_policy_id)
         if not args['dry_run']:
           scale_policy.execute()
         else:
           logger.info('Scale down prevented by --dry-run')
+        logger.info('Scale down policy executed (' + scale_policy_id + ')')
+
       except:
         logger.warning('Cannot execute scale down policy')
 
     else:
       logger.info('Cluster within target paramters')
-    
-    logger.info('Policy execution completed')
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
