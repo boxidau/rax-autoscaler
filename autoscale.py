@@ -29,6 +29,62 @@ from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 import cloudmonitor
 from version import return_version
+import json
+import urllib2
+
+def webhook_call(config, group, policy, key):
+
+  url_list = common.get_webhook_value(config_data, group, policy)
+  if url_list is None:
+    logger.error('Unable to get webhook urls from json file')
+    return 
+  
+  group_id = common.get_group_value(config_data, group, 'GROUP_ID')
+  if group_id is None:
+    logger.error('Unable to get GROUP_ID from json file')
+    return 
+  
+  up_policy_id = common.get_group_value(config_data, group, 'SCALE_UP_POLICY')
+  if up_policy_id is None:
+    logger.error('Unable to get SCALE_UP_POLICY from json file')
+    return 
+  
+  down_policy_id = common.get_group_value(config_data, group, 'SCALE_DOWN_POLICY')
+  if down_policy_id is None:
+    logger.error('Unable to get SCALE_DOWN_POLICY from json file')
+    return 
+  
+  check_type = common.get_group_value(config_data, group, 'CHECK_TYPE')
+  if check_type is None:
+    logger.error('Unable to get CHECK_TYPE from json file')
+    return 
+  
+  metric_name = common.get_group_value(config_data, group, 'METRIC_NAME')
+  if check_type is None:
+    logger.error('Unable to get METRIC_NAME from json file')
+    return 
+  
+  up_threshold = common.get_group_value(config_data, group, 'SCALE_UP_THRESHOLD')
+  if up_threshold is None:
+    logger.error('Unable to get SCALE_UP_THRESHOLD from json file')
+    return 
+  
+  down_threshold = common.get_group_value(config_data, group, 'SCALE_DOWN_THRESHOLD')
+  if up_threshold is None:
+    logger.error('Unable to get SCALE_DOWN_THRESHOLD from json file')
+    return 
+  
+  data = json.dumps([group_id, up_policy_id, down_policy_id, check_type, metric_name, up_threshold, down_threshold])
+  
+  urls = url_list[key]
+  
+  for url in urls:
+    req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+    f = urllib2.urlopen(req)
+    response = f.read()
+    f.close()
+
+  return 1
 
 def exit_with_error(msg):
   if msg is None:
@@ -159,7 +215,9 @@ def autoscale(group, config_data, args):
         scale_policy_id = common.get_group_value(config_data, group, 'SCALE_UP_POLICY')
         scale_policy = scalingGroup.get_policy(scale_policy_id)
         if not args['dry_run']:
+          webhook_call(config_data, group, 'SCALE_UP', 'PRE')
           scale_policy.execute()
+          webhook_call(config_data, group, 'SCALE_UP', 'POST')
         else:
           logger.info('Scale up prevented by --dry-run')
         logger.info('Scale up policy executed (' + scale_policy_id + ')')
@@ -172,7 +230,9 @@ def autoscale(group, config_data, args):
         scale_policy_id = common.get_group_value(config_data, group, 'SCALE_DOWN_POLICY')
         scale_policy = scalingGroup.get_policy(scale_policy_id)
         if not args['dry_run']:
+          webhook_call(config_data, group, 'SCALE_DOWN', 'PRE')
           scale_policy.execute()
+          webhook_call(config_data, group, 'SCALE_DOWN', 'POST')
         else:
           logger.info('Scale down prevented by --dry-run')
         logger.info('Scale down policy executed (' + scale_policy_id + ')')
