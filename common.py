@@ -50,13 +50,14 @@ def log(level, message):
   else:
     print(message)
 
-def get_config(config_file, group):
-  config = ConfigParser.ConfigParser()
-  config.read(config_file)
-  if config.has_section(group):
-    return config
-  else:
-    raise Exception('Unknown config section') 
+def get_config(config_file):
+  try:
+    json_data = open(config_file)
+    data = json.load(json_data)
+    return data
+  except:
+    return
+  
 
 def get_machine_uuid():
   name = subprocess.Popen(['xenstore-read name'], shell=True, stdout=subprocess.PIPE).communicate()[0]
@@ -66,10 +67,21 @@ def get_machine_uuid():
 def get_user_value(args, config, key):
   if args[key] is None:
     try:
-      value = config.get('rackspace_cloud', key)
+      value = config['AUTH'][key.upper()]
+      if not value:
+        return
     except:
-      raise Exception("Invalid config, '" + key + "' key not found in rackspace_cloud section")
+      raise Exception("Invalid config, '" + key + "' key not found in authentication section")
+      return
   else:
       value = args[key]
   return value 
 
+def get_group_value(config, group, key):
+  try:
+    value = config['AUTOSCALE_GROUPS'][group][key]
+    if not value:
+      return
+    return value
+  except:
+    return
