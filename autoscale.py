@@ -68,8 +68,14 @@ def is_node_master(scalingGroup):
     logger.info('Node is not a master, nothing to do. Exiting')
   return
 
-def get_scaling_group(group, config):
-  scalingGroup = cloudmonitor.scaling_group_servers(config.get(group, 'GROUP_ID'))
+def get_scaling_group(group, config_data):
+  
+  group_id = common.get_group_value(config_data, group, 'GROUP_ID')
+  if group_id is None:
+    logger.error('Unable to get GROUP_ID from json file')
+    return 
+
+  scalingGroup = cloudmonitor.scaling_group_servers(group_id)
   # Check active server(s) in scaling group
   if len(scalingGroup.get_state()['active']) == 0:
     return
@@ -80,10 +86,10 @@ def get_scaling_group(group, config):
     logger.info('Current Active Servers: ' + str(scalingGroup.get_state()['active_capacity']))
     return scalingGroup
 
-def autoscale(group, config, args):
+def autoscale(group, config_data, args):
   au = pyrax.autoscale
 
-  scalingGroup = get_scaling_group(group, config)
+  scalingGroup = get_scaling_group(group, config_data)
   if scalingGroup is None:
       return 1
    
@@ -103,8 +109,13 @@ def autoscale(group, config, args):
         return 1 
 
   # Gather cluster statistics
-  check_type = config.get(group, 'CHECK_TYPE', 'agent.load_average')
-  metric_name = config.get(group, 'METRIC_NAME', '1m')
+  check_type = common.get_group_value(config_data, group, 'CHECK_TYPE') 
+  if check_type is None:
+    check_type = 'agent.load_average'
+
+  metric_name = common.get_group_value(config_data, group, 'METRIC_NAME')
+  if metric_name is None:
+    metric_name = '1m'
 
   logger.info('Gathering Monitoring Data')
 
@@ -132,15 +143,20 @@ def autoscale(group, config, args):
     return 1
   else:
     average = sum(results)/len(results)
-    scale_up_threshold = config.getfloat(group, 'SCALE_UP_THRESHOLD')
-    scale_down_threshold = config.getfloat(group, 'SCALE_DOWN_THRESHOLD')
+    scale_up_threshold = common.get_group_value(config_data, group, 'SCALE_UP_THRESHOLD')
+    if scale_up_threshold is None:
+      scale_up_threshold = 0.6
+
+    scale_down_threshold = common.get_group_value(config_data, group, 'SCALE_DOWN_THRESHOLD')
+    if scale_down_threshold is None:
+      scale_down_threshold = 0.4
 
     logger.info('Cluster average for ' + check_type + '(' + metric_name + ') at: ' + str(average))
 
     if average > scale_up_threshold:
       try:
         logger.info('Above Threshold - Scaling Up')
-        scale_policy_id = config.get(group, 'SCALE_UP_POLICY')
+        scale_policy_id = common.get_group_value(config_data, group, 'SCALE_UP_POLICY')
         scale_policy = scalingGroup.get_policy(scale_policy_id)
         if not args['dry_run']:
           scale_policy.execute()
@@ -153,7 +169,7 @@ def autoscale(group, config, args):
     elif average < scale_down_threshold:
       try:
         logger.info('Below Threshold - Scaling Down')
-        scale_policy_id = config.get(group, 'SCALE_DOWN_POLICY')
+        scale_policy_id = common.get_group_value(config_data, group, 'SCALE_DOWN_POLICY')
         scale_policy = scalingGroup.get_policy(scale_policy_id)
         if not args['dry_run']:
           scale_policy.execute()
@@ -173,7 +189,7 @@ if __name__ == '__main__':
   parser.add_argument('--as-group', required=True, help='The autoscale group config ID')
   parser.add_argument('--os-username', required=False, help='Rackspace Cloud user name')
   parser.add_argument('--os-password', required=False, help='Rackspace Cloud account API key')
-  parser.add_argument('--config-file', required=False, default='config.ini', help='The autoscale configuration .ini file (default:config.ini)'),
+  parser.add_argument('--config-file', required=False, default='config.json', help='The autoscale configuration .ini file (default:config.ini)'),
   parser.add_argument('--os-region-name', required=False, help='The region to build the servers',
   choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
   parser.add_argument('--cluster', required=False, default=False, action='store_true')
@@ -199,17 +215,23 @@ if __name__ == '__main__':
 
   for arg in args:
     logger.debug('argument provided by user ' + arg + ' : ' + str(args[arg]))
+  
+  #Get data from config.json
+  config_data = common.get_config(config_file)
+  if config_data is None:
+    exit_with_error('Failed to read config file: ' + config_file)
 
+  #Check if group exists
   try:
-    config = common.get_config(config_file, args['as_group'])
-  except:
-    exit_with_error('Unknown config section ' + args['as_group'])
+    group_value = config_data["AUTOSCALE_GROUPS"][args['as_group']] 
+  except: 
+    exit_with_error("Unable to find group '" + args['as_group'] + "' in " + config_file)
 
   failed = 0 
   try:
-    username = common.get_user_value(args, config, 'os_username')
-    api_key = common.get_user_value(args, config, 'os_password')
-    region = common.get_user_value(args, config, 'os_region_name')
+    username = common.get_user_value(args, config_data, 'os_username')
+    api_key = common.get_user_value(args, config_data, 'os_password')
+    region = common.get_user_value(args, config_data, 'os_region_name')
   except Exception, err:
     logger.error(err)
     failed = 1
@@ -218,7 +240,7 @@ if __name__ == '__main__':
     session = Auth(username, api_key, region)
 
     if session.authenticate() == True:
-        rv = autoscale(args['as_group'], config, args)
+        rv = autoscale(args['as_group'], config_data, args)
         if rv is None:
           log_file = logger.root.handlers[0].baseFilename
           if log_file is None:
@@ -226,7 +248,7 @@ if __name__ == '__main__':
           else:  
             logger.info('completed successfully: '+log_file)
         else:
-          exit_with_error()
+          exit_with_error('Unable to proceed further')
     else:
       exit_with_error('Authentication failed')
 

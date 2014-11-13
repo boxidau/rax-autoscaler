@@ -35,7 +35,7 @@ class Auth(object):
 
     def __init__(self, username, apikey, region,
                  identity_type="rackspace",
-                 token_filename=os.path.expanduser('~/.aspoc-token')):
+                 token_filename=os.path.expanduser('~/.rax-autoscaler-token')):
         logger = logging.getLogger(__name__)
         self._username = username
         self._apikey = apikey
