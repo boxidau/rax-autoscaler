@@ -85,3 +85,12 @@ def get_group_value(config, group, key):
     return value
   except:
     return
+
+def get_webhook_value(config, group, key):
+  try:
+    value = config['AUTOSCALE_GROUPS'][group]['WEBHOOKS'][key]
+    if not value:
+      return
+    return value
+  except:
+    return
