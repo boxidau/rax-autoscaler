@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Encoding: utf-8
 #
 # rax-autoscaler
@@ -31,6 +32,13 @@ import cloudmonitor
 from version import return_version
 import json
 import urllib2
+
+
+# LOGGING
+logging_conf_file = 'logging.conf'
+logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
+logging.config.fileConfig(logging_conf_file)
+logger = logging.getLogger(__name__)
 
 
 def webhook_call(config, group, policy, key):
@@ -265,7 +273,8 @@ def autoscale(group, config_data, args):
         logger.info('Cluster within target paramters')
 
 
-if __name__ == '__main__':
+def main():
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--as-group', required=True,
@@ -296,12 +305,6 @@ if __name__ == '__main__':
     if config_file is None:
         exit_with_error("Either file is missing or is not readable: '" +
                         args['config_file']+"'")
-
-    # LOGGING
-    logging_conf_file = 'logging.conf'
-    logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
-    logging.config.fileConfig(logging_conf_file)
-    logger = logging.getLogger(__name__)
 
     # Show Version
     logger.info(return_version())
@@ -346,3 +349,7 @@ if __name__ == '__main__':
             exit_with_error('Unable to proceed further')
     else:
         exit_with_error('Authentication failed')
+
+
+if __name__ == '__main__':
+    main()
