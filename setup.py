@@ -51,9 +51,9 @@ setup(
     },
     platforms='any',
     install_requires=[
-        "pyrax==1.9.2",
-        "requests==2.4.3",
-        "termcolor==1.1.0",
+        "pyrax",
+        "requests",
+        "termcolor",
     ],
     packages=find_packages(),
     package_data={'docs': ['*.rst'], 'raxas': ['requirements.txt']},
