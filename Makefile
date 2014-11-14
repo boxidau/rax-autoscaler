@@ -31,7 +31,7 @@ check:
 	# pymetrics
 
 clean:
-	$(PYTHON) setup.py clean
-	rm -rf build/ MANIFEST dist build my_program.egg-info deb_dist
+	#$(PYTHON) setup.py clean
+	#rm -rf build/ MANIFEST dist build my_program.egg-info deb_dist
 	find . -name '*.pyc' -delete
 
