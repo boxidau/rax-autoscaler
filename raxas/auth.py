@@ -17,7 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import json
@@ -25,7 +25,7 @@ import logging
 import os.path
 import pprint
 import pyrax
-import traceback    
+import traceback
 
 
 class Auth(object):
@@ -51,8 +51,8 @@ class Auth(object):
                 "region: %s, token_filename: %s, token: %s, "
                 "tenant_id: %s" %
                 (self._username, self._apikey, self._identity_type,
-                self._region, self._token_filename, self._token,
-                self._tenant_id))
+                 self._region, self._token_filename, self._token,
+                 self._tenant_id))
 
     def status(self):
         '''
@@ -70,8 +70,9 @@ class Auth(object):
 
     def authenticate(self):
         '''
-        authentication facility, tries to load a token from file, authenticate with
-        it, and if it fails then tries to authenticate with credentials 
+        authentication facility, tries to load a token from file,
+        authenticate with it, and if it fails then tries to authenticate
+         with credentials
         '''
         logger = logging.getLogger(__name__)
         # try to authenticate with token
@@ -84,13 +85,14 @@ class Auth(object):
                              (self._token, self._token_filename))
                 return True
             else:
-                logger.debug("cannot authenticate with token '%s' from file '%s'" %
-                             (self._token, self._token_filename))
+                logger.debug("cannot authenticate with token '%s' "
+                             "from file '%s'"
+                             % (self._token, self._token_filename))
         # try to authenticate with credentials
         if self.authenticate_credentials():
             logger.info('authenticated successfully')
-            logger.debug("authenticated with credentials, username:%s, api-key:%s,"
-                         " region:%s, identity_type:%s" %
+            logger.debug("authenticated with credentials, username:%s,"
+                         "api-key:%s, region:%s, identity_type:%s" %
                          (self._username, self._apikey, self._region,
                           self._identity_type))
             return True
@@ -104,7 +106,7 @@ class Auth(object):
     def authenticate_credentials(self):
         '''
         authenticate with username and api-key
-        
+
         @identity_type    'rackspace', 'openstack'
         @username
         @apikey
@@ -112,19 +114,20 @@ class Auth(object):
         '''
         logger = logging.getLogger(__name__)
         logger.debug('authenticating with credentials '
-                      '(identity_type:%s, username:%s, api-key:%s, region=%s)'
-                      % (self._identity_type, self._username, self._apikey,
-                         self._region))
+                     '(identity_type:%s, username:%s, api-key:%s, region=%s)'
+                     % (self._identity_type, self._username, self._apikey,
+                        self._region))
         try:
             pyrax.set_setting("identity_type", self._identity_type)
             pyrax.set_credentials(self._username, self._apikey,
                                   region=self._region)
-            logger.info("authenticated with credentials, username:%s, api-key:%s, "
-                        "region:%s, identity_type:%s" %
+            logger.info("authenticated with credentials, username:%s, "
+                        "api-key:%s, region:%s, identity_type:%s" %
                         (self._username, self._apikey, self._region,
                          self._identity_type))
-            logger.debug("user authenticated: %s" % pyrax.identity.authenticated)
-            if  pyrax.identity.authenticated:
+            logger.debug("user authenticated: %s"
+                         % pyrax.identity.authenticated)
+            if pyrax.identity.authenticated:
                 self._token = pyrax.identity.auth_token
                 self._tenant_id = pyrax.identity.tenant_id
                 self.save_token()
@@ -170,7 +173,7 @@ class Auth(object):
     def load_token(self):
         '''
         load token from file
-        
+
         Actually it loads 'token' and 'tenant_id' from token file.
         '''
         logger = logging.getLogger(__name__)
@@ -181,12 +184,12 @@ class Auth(object):
                          (pprint.pformat(data), self._token_filename))
         except ValueError:
             logger.error("cannot decode JSON data in token file'%s'" %
-                           self._token_filename)
+                         self._token_filename)
             logger.debug(traceback.format_exc())
             return False
         except:
             logger.error("cannot read token data from file '%s'" %
-                           self._token_filename)
+                         self._token_filename)
             logger.debug(traceback.format_exc())
             return False
         try:
@@ -203,7 +206,7 @@ class Auth(object):
         save token to file
         '''
         logger = logging.getLogger(__name__)
-        data = {'token':self._token, 'tenant_id':self._tenant_id}
+        data = {'token': self._token, 'tenant_id': self._tenant_id}
         try:
             with open(self._token_filename, 'w') as f:
                 json.dump(data, f)

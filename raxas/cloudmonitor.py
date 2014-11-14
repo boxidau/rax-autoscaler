@@ -26,6 +26,7 @@ import pyrax
 d_cached_servers_name = {}  # cached dictionary of server id:name
 check_cpu_name = 'rx_autoscale_check_cpu'
 
+
 def add_cm_cpu_check(server_id):
     '''
     add Cloud Monitoring cpu check to server, if it is not already present
@@ -34,11 +35,11 @@ def add_cm_cpu_check(server_id):
     global check_cpu_name
     try:
         entity = get_entity(server_id)
-        
+
         # check if the check already exists
         exist_check_cpu = len([c for c in entity.list_checks()
                                if c.name == check_cpu_name])
-        
+
         # add check if it does not exist
         ip_address = get_server_ipv4(server_id, _type='private')
         logger.debug("server_id:%s, ip_address:%s, type:private" %
@@ -50,17 +51,19 @@ def add_cm_cpu_check(server_id):
                                   check_type="agent.cpu",
                                   details={},
                                   period=60, timeout=30,
-                                  target_alias=ip_address) # ERROR
-            logging.info('ADD - \'aspoc_check_cpu\': '+ chk + ' to server id: '+ server_id)
-
+                                  target_alias=ip_address)
+            logging.info('ADD - \'aspoc_check_cpu\': ' + chk +
+                         ' to server id: ' + server_id)
         else:
-            logging.info('SKIP - \'aspoc_check_cpu\' already existing on server id: '+ server_id)
+            logging.info('SKIP - \'aspoc_check_cpu\' already '
+                         'existing on server id: ' + server_id)
         return 1
-            
+
     except:
-            logging.warning('Unable to add cloud monitoring to server with id: '+ server_id)
+            logging.warning('Unable to add cloud monitoring to '
+                            'server with id: ' + server_id)
             return
-            
+
 
 def get_entity(agent_id):
     '''
@@ -68,11 +71,12 @@ def get_entity(agent_id):
     '''
     cm = pyrax.cloud_monitoring
     try:
-        return filter(lambda e: e.agent_id == agent_id, [e for e in
-                                                         cm.list_entities()])[0]
+        return filter(lambda e: e.agent_id == agent_id,
+                      [e for e in cm.list_entities()])[0]
     except:
         logging.info('no entity with agent_id: %s' % agent_id)
         return None
+
 
 def get_server(server_id):
     '''
@@ -84,6 +88,7 @@ def get_server(server_id):
     except:
         logging.info('no cloud server with id: %s' % server_id)
         return None
+
 
 def get_server_name(server_id):
     '''
@@ -102,10 +107,11 @@ def get_server_name(server_id):
             d_cached_servers_name[server_id] = server.name
             return d_cached_servers_name[server_id]
 
+
 def scaling_group_servers(sgid):
     '''
     list servers' id in scaling group sgid
-    
+
     @param sgid    scaling group id
     '''
     a = pyrax.autoscale
@@ -116,12 +122,14 @@ def scaling_group_servers(sgid):
         logging.error('Unable to find scaling group with id:%s' % sgid)
         return
 
+
 def get_server_ipv4(server_id, _type='public'):
     '''
     get public IP v4 server address
-    
+
     @param server_id    server id
-    @param _type        IP v4 type: public (default), private, or custom network
+    @param _type        IP v4 type: public (default), private,
+    or custom network
     @return public IP v4 of server
     '''
     server = get_server(server_id)
@@ -134,6 +142,7 @@ def get_server_ipv4(server_id, _type='public'):
         logging.warning(msg)
         return None
 
+
 def is_ipv4(address):
     '''
     check if address is valid IP v4
@@ -144,4 +153,3 @@ def is_ipv4(address):
         return True
     except socket.error:
         return False
-
