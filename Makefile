@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 PYTHON=`which python`
 NAME=`python setup.py --name`
 
