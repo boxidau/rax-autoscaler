@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Encoding: utf-8
 #
 # rax-autoscaler
@@ -243,7 +244,7 @@ def autoscale(group, config_data, args):
     else:
       logger.info('Cluster within target paramters')
 
-if __name__ == '__main__':
+def main():
   parser = argparse.ArgumentParser()
 
   parser.add_argument('--as-group', required=True, help='The autoscale group config ID')
@@ -312,3 +313,5 @@ if __name__ == '__main__':
     else:
       exit_with_error('Authentication failed')
 
+if __name__ == '__main__':
+    main()
