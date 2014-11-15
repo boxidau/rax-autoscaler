@@ -41,3 +41,12 @@ Once tested you should configure this script to run as a cron job either on a ma
 
 ### Note
 rax-autoscaler depend on rackspace monitoring agent to get the data from nodes in scaling group. If the agent is not installed please follow : http://www.rackspace.com/knowledge_center/article/install-the-cloud-monitoring-agent
+
+## Contributing
+
+- Fork it
+- Create your feature branch (git checkout -b my-new-feature)
+- Commit your changes (git commit -am 'Add some feature')
+- Push to the branch (git push origin my-new-feature)
+- Create new Pull Request
+
