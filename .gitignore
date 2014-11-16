@@ -3,6 +3,7 @@ include/
 *.swp
 .token_cache
 .idea
+README.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
