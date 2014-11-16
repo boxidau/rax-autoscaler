@@ -13,12 +13,7 @@ dedicated management instance.
 
 Installation
 
-    git clone git@github.com:boxidau/rax-autoscaler.git
-    virtualenv rax-autoscaler
-    cd rax-autoscaler/
-    source bin/activate
-    pip install pyrax termcolor netifaces six requests python-novaclient argparse
-    cp config-template.json config.json
+    pip install RAX-AutoScaler
 
 Configuration
 
@@ -28,21 +23,20 @@ Edit config.json adding the following:
 -   API key
 -   Region name
 -   Autoscaling group section should contain:
-
-    -   AutoScale Group UUID
-    -   Scale Up Policy UUID
-    -   Scale Down Policy UUID
-    -   Check Type (agent.cpu, agent.load_average...)
-    -   Metric Name (depends on the check type)
-    -   Scale Up Threshold
-    -   Scale Down Threshold
-    -   Webhooks Url (Pre & Post commit url(s) for scale up/down)
+-   AutoScale Group UUID
+-   Scale Up Policy UUID
+-   Scale Down Policy UUID
+-   Check Type (agent.cpu, agent.load_average...)
+-   Metric Name (depends on the check type)
+-   Scale Up Threshold
+-   Scale Down Threshold
+-   Webhooks Url (Pre & Post commit url(s) for scale up/down)
 
 
 Usage
 
 Once configured you can invoke the autoscaler.py script with the
-following required argument --as-group
+following required argument --as-group:
 
 -   --as-group must refer to a section in the config.json file
 
@@ -56,9 +50,19 @@ on a management instance or on all cluster members
 
 Note
 
-rax-autoscaler depend on rackspace monitoring agent to get the data from
-nodes in scaling group. If the agent is not installed please follow :
-http://www.rackspace.com/knowledge_center/article/install-the-cloud-monitoring-agent
+RAX-AutoScaler depends on Rackspace Monitoring Agent to get the data
+from nodes in scaling group.
+If the agent is not installed please read: Install the Cloud Monitoring
+Agent
+
+
+Contributing
+
+-   Fork it
+-   Create your feature branch (git checkout -b my-new-feature)
+-   Commit your changes (git commit -am 'Add some feature')
+-   Push to the branch (git push origin my-new-feature)
+-   Create new Pull Request
 
 
 License

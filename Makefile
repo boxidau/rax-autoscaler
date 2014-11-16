@@ -15,6 +15,9 @@ source: clean
 	$(PYTHON) setup.py sdist
 	rm -rf RAX_AutoScaler.egg-info
 
+upload: source
+    $(PYTHON) setup.py sdist upload
+
 #deb:
 #	$(PYTHON) setup.py --command-packages=stdeb.command bdist_deb
 
