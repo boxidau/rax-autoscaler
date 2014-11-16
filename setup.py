@@ -29,9 +29,10 @@ setup(
     version=VERSION,
     url='https://github.com/boxidau/rax-autoscaler',
     author='Simon Mirco, Simone Soldateschi, Suraj Thapa',
-    author_email='simon.mirco@rackspace.com, simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com',
+    author_email='''simon.mirco@rackspace.com,
+simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com''',
     description='Rackspace Auto Scale made easy',
-    entry_points = {
+    entry_points={
         "console_scripts": ['autoscale = raxas.autoscale:main']
     },
     platforms='any',
@@ -41,14 +42,16 @@ setup(
         "termcolor",
     ],
     license='Apache License, Version 2.0',
+    long_description=open('README.txt').read(),
     packages=find_packages(),
     package_data={'docs': ['*.rst'], 'raxas': ['requirements.txt']},
-    #scripts=['raxas'],
-    classifiers=['Programming Language :: Python',
-                 'Development Status :: Alpha',
-                 'Natural Language :: English',
-                 'Environment :: Console',
-                 'Intended Audience :: DevOps and Cloud Technologists'],
+    # scripts=['raxas'],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 2',
+        'Environment :: Console',
+        'Intended Audience :: Information Technology',
+        'Natural Language :: English'
+    ],
 )
-
-
