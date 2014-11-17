@@ -31,11 +31,13 @@ setup(
     author='Simon Mirco, Simone Soldateschi, Suraj Thapa',
     author_email='''simon.mirco@rackspace.com,
 simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com''',
+    data_files=[('config', ['config/*']),],
     description='Rackspace Auto Scale made easy',
     entry_points={
         "console_scripts": ['autoscale = raxas.autoscale:main']
     },
     platforms='any',
+    include_package_data=True,
     install_requires=[
         "pyrax",
         "requests",
@@ -44,7 +46,7 @@ simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com''',
     license='Apache License, Version 2.0',
     long_description=open('README.txt').read(),
     packages=find_packages(),
-    package_data={'docs': ['*.rst'], 'raxas': ['requirements.txt']},
+    package_data={'docs': ['*.rst'], 'raxas': ['requirements.txt'],},
     # scripts=['raxas'],
     classifiers=[
         'Development Status :: 3 - Alpha',
