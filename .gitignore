@@ -5,6 +5,7 @@ include/
 .token_cache
 .idea
 README.txt
+logging.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

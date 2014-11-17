@@ -72,6 +72,14 @@ This has been tested on these images:
 RAX-AutoScaler depends on Rackspace Monitoring Agent to get the data from nodes in scaling group.
 If the agent is not installed please read: [Install the Cloud Monitoring Agent](http://www.rackspace.com/knowledge_center/article/install-the-cloud-monitoring-agent)
 
+## Contributing
+
+- Fork it
+- Create your feature branch (git checkout -b my-new-feature)
+- Commit your changes (git commit -am 'Add some feature')
+- Push to the branch (git push origin my-new-feature)
+- Create new Pull Request
+
 ## License
 
 ```
@@ -89,3 +97,4 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
