@@ -10,6 +10,7 @@
           "SCALE_UP_POLICY": "scale up policy id",
           "SCALE_DOWN_POLICY": "scale down policy id",
           "CHECK_TYPE": "agent.load_average",
+          "check_config": {},
           "METRIC_NAME": "1m",
           "SCALE_UP_THRESHOLD": 0.6,
           "SCALE_DOWN_THRESHOLD": 0.4,

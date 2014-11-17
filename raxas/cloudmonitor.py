@@ -22,45 +22,45 @@ import pyrax
 
 # GLOBALS
 d_cached_servers_name = {}  # cached dictionary of server id:name
-check_cpu_name = 'rx_autoscale_check_cpu'
+check_name = 'raxas'
 
 
-def add_cm_cpu_check(server_id):
+def add_cm_check(server_id, check_type, check_config):
     '''
     add Cloud Monitoring cpu check to server, if it is not already present
     '''
     logger = logging.getLogger(__name__)
-    global check_cpu_name
+    global check_name
     try:
         entity = get_entity(server_id)
 
         # check if the check already exists
-        exist_check_cpu = len([c for c in entity.list_checks()
-                               if c.name == check_cpu_name])
+        exist_check = len([c for c in entity.list_checks()
+                               if c.type == check_type])
 
         # add check if it does not exist
         ip_address = get_server_ipv4(server_id, _type='private')
         logger.debug("server_id:%s, ip_address:%s, type:private" %
                      (server_id, ip_address))
-        if not exist_check_cpu:
+        if not exist_check:
             cm = pyrax.cloud_monitoring
             chk = cm.create_check(entity,
-                                  label=check_cpu_name,
-                                  check_type="agent.cpu",
-                                  details={},
+                                  label=check_name + '_' + check_type,
+                                  check_type=check_type,
+                                  details=check_config,
                                   period=60, timeout=30,
                                   target_alias=ip_address)
-            logging.info('ADD - \'aspoc_check_cpu\': ' + chk +
-                         ' to server id: ' + server_id)
+            logging.info('ADD - Cloud monitoring check (' + check_type +
+                         ') to server with id: ' + server_id)
         else:
-            logging.info('SKIP - \'aspoc_check_cpu\' already '
-                         'existing on server id: ' + server_id)
+            logging.info('SKIP - Cloud monitoring check (' + check_type +
+                         ') already exists on server id: ' + server_id)
         return 1
 
     except:
-            logging.warning('Unable to add cloud monitoring to '
-                            'server with id: ' + server_id)
-            return
+        logging.warning('Unable to add cloud monitoring check (' + check_type +
+                        ') to server with id: ' + server_id)
+        return
 
 
 def get_entity(agent_id):

@@ -182,8 +182,12 @@ def autoscale(group, config_data, args):
     if scalingGroup is None:
         return 1
 
+    check_type = common.get_group_value(config_data, group, 'CHECK_TYPE')
+    
+    check_config = common.get_group_value(config_data, group, 'check_config')
+
     for s_id in scalingGroup.get_state()['active']:
-        rv = cloudmonitor.add_cm_cpu_check(s_id)
+        rv = cloudmonitor.add_cm_check(s_id, check_type, check_config)
 
     logger.info('Cluster Mode Enabled: ' + str(args['cluster']))
 
