@@ -26,6 +26,7 @@ import ConfigParser
 import subprocess
 import datetime
 import json
+import urllib2
 
 
 def check_file(fname):
@@ -40,17 +41,6 @@ def check_file(fname):
                 return preDefinedPath
     # Either file is missing or is not readable
     return
-
-
-def log(level, message):
-    if level == 'OK':
-        print(colored('[  OK  ]', 'green'), "\t", message, file=sys.stderr)
-    elif level == 'INFO':
-        print(colored('[ INFO ]', 'blue'), "\t", message, file=sys.stderr)
-    elif level == 'ERROR':
-        print(colored('[ FAIL ]', 'red'), "\t", message, file=sys.stderr)
-    else:
-        print(message)
 
 
 def get_config(config_file):
@@ -72,7 +62,7 @@ def get_machine_uuid():
 def get_user_value(args, config, key):
     if args[key] is None:
         try:
-            value = config['AUTH'][key.upper()]
+            value = config['auth'][key.lower()]
             if not value:
                 return
         except:
@@ -86,7 +76,7 @@ def get_user_value(args, config, key):
 
 def get_group_value(config, group, key):
     try:
-        value = config['AUTOSCALE_GROUPS'][group][key]
+        value = config['autoscale_groups'][group][key]
         if not value:
             return
         return value
@@ -96,9 +86,75 @@ def get_group_value(config, group, key):
 
 def get_webhook_value(config, group, key):
     try:
-        value = config['AUTOSCALE_GROUPS'][group]['WEBHOOKS'][key]
+        value = config['autoscale_groups'][group]['webhooks'][key]
         if not value:
             return
         return value
     except:
         return
+
+
+def webhook_call(config_data, group, policy, key):
+
+    url_list = get_webhook_value(config_data, group, policy)
+    if url_list is None:
+        logger.error('Unable to get webhook urls from json file')
+        return
+
+    group_id = get_group_value(config_data, group, 'group_id')
+    if group_id is None:
+        logger.error('Unable to get group_id from json file')
+        return
+
+    up_policy_id = get_group_value(config_data, group,
+                                   'scale_up_policy')
+    if up_policy_id is None:
+        logger.error('Unable to get scale_up_policy from json file')
+        return
+
+    down_policy_id = get_group_value(config_data, group,
+                                     'scale_down_policy')
+    if down_policy_id is None:
+        logger.error('Unable to get scale_down_policy from json file')
+        return
+
+    check_type = get_group_value(config_data, group, 'check_type')
+    if check_type is None:
+        logger.error('Unable to get check_type from json file')
+        return
+
+    metric_name = get_group_value(config_data, group,
+                                  'metric_name')
+    if check_type is None:
+        logger.error('Unable to get metric_name from json file')
+        return
+
+    up_threshold = get_group_value(config_data, group,
+                                   'scale_up_threshold')
+    if up_threshold is None:
+        logger.error('Unable to get scale_up_threshold from json file')
+        return
+
+    down_threshold = get_group_value(config_data, group,
+                                     'scale_down_threshold')
+    if up_threshold is None:
+        logger.error('Unable to get scale_down_threshold from json file')
+        return
+
+    data = json.dumps({'group_id': group_id,
+                       'scale_up_policy': up_policy_id,
+                       'scale_down_policy': down_policy_id,
+                       'check_type': check_type,
+                       'metric_name': metric_name,
+                       'scale_up_threshold': up_threshold,
+                       'scale_down_threshold': down_threshold})
+
+    urls = url_list[key]
+
+    for url in urls:
+        req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+        f = urllib2.urlopen(req)
+        response = f.read()
+        f.close()
+
+    return 1
