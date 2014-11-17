@@ -37,6 +37,9 @@ teddy.schmitz@rackspace.com''',
     entry_points={
         "console_scripts": ['autoscale = raxas.autoscale:main']
     },
+    keywords='rax rackspace autoscale scaling devops cloud openstack',
+    maintainer='Simone Soldateschi',
+    maintainer_email='simone.soldateschi@rackspace.co.uk',
     platforms='any',
     include_package_data=True,
     install_requires=[

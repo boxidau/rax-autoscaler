@@ -32,7 +32,7 @@ from version import return_version
 
 
 # CHECK logging.conf
-logging_config = os.path.join(os.getcwd(), 'config/logging.conf')
+logging_config = common.check_file('../config/logging.conf')
 
 if logging_config is None:
     logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
