@@ -32,11 +32,18 @@ import json
 import urllib2
 
 
-# LOGGING
-logging_conf_file = os.path.join(os.getcwd(), 'config/logging.conf')
-logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
-logging.config.fileConfig(logging_conf_file)
-logger = logging.getLogger(__name__)
+# CHECK logging.conf
+logging_config = common.check_file('config/logging.conf')
+
+if logging_config is None:
+    logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+else:
+    logging_conf_file = logging_config
+    logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
+    logging.config.fileConfig(logging_conf_file)
+    logger = logging.getLogger(__name__)
 
 
 def webhook_call(config, group, policy, key):
@@ -338,7 +345,9 @@ def main():
     if session.authenticate() is True:
         rv = autoscale(args['as_group'], config_data, args)
         if rv is None:
-            log_file = logger.root.handlers[0].baseFilename
+            log_file = None
+            if hasattr(logger.root.handlers[0], 'baseFilename'):
+                log_file = logger.root.handlers[0].baseFilename
             if log_file is None:
                 logger.info('completed successfull')
             else:
