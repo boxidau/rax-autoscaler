@@ -25,12 +25,13 @@ except ImportError:
 from raxas.version import VERSION
 
 setup(
-    name='RAX-AutoScaler',
+    name='rax-autoscaler',
     version=VERSION,
     url='https://github.com/boxidau/rax-autoscaler',
-    author='Simon Mirco, Simone Soldateschi, Suraj Thapa',
+    author='Simon Mirco, Simone Soldateschi, Suraj Thapa, Teddy Schmitz',
     author_email='''simon.mirco@rackspace.com,
-simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com''',
+simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com,
+teddy.schmitz@rackspace.com''',
     data_files=[('config', ['config/*']),],
     description='Rackspace Auto Scale made easy',
     entry_points={
