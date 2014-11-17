@@ -147,7 +147,7 @@ def autoscale(group, config_data, args):
     cm = pyrax.cloud_monitoring
     # Get all CloudMonitoring entities on the account
     entities = cm.list_entities()
-    # TODO: spawn threads for each valid entity to make data collection faster
+
     for ent in entities:
         # Check if the entity is also in the scaling group
         if ent.agent_id in scalingGroup.get_state()['active']:
@@ -165,6 +165,10 @@ def autoscale(group, config_data, args):
                                     ', value: ' + str(data[point]['average']))
                         results.append(float(data[point]['average']))
                         break
+
+        # Restrict number of data points to save on API calls
+        if len(results) >= args['max_sample']:
+            break
 
     if len(results) == 0:
         logger.error('No data available')
