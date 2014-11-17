@@ -33,7 +33,7 @@ import urllib2
 
 
 # LOGGING
-logging_conf_file = 'logging.conf'
+logging_conf_file = os.path.join(os.getcwd(), 'config/logging.conf')
 logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
 logging.config.fileConfig(logging_conf_file)
 logger = logging.getLogger(__name__)
