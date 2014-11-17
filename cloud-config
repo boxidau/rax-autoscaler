@@ -1,0 +1,7 @@
+#cloud-config
+
+packages:
+  - python-pip
+
+runcmd:
+  - [ pip, install, RAX-AutoScaler ]
