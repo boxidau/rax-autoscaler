@@ -183,7 +183,7 @@ def autoscale(group, config_data, args):
         return 1
 
     check_type = common.get_group_value(config_data, group, 'CHECK_TYPE')
-    
+
     check_config = common.get_group_value(config_data, group, 'check_config')
 
     for s_id in scalingGroup.get_state()['active']:
