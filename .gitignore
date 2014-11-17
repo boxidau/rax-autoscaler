@@ -1,4 +1,5 @@
-config.ini
+logging.conf
+config.json
 include/
 *.swp
 .token_cache
