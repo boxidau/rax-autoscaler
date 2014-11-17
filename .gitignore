@@ -1,4 +1,4 @@
-logging.conf
+logging.log
 config.json
 include/
 *.swp
