@@ -30,7 +30,9 @@ setup(
     url='https://github.com/boxidau/rax-autoscaler',
     author='Simon Mirco, Simone Soldateschi, Suraj Thapa, Teddy Schmitz',
     author_email='''simon.mirco@rackspace.com,
-simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com, teddy.schmitz@rackspace.com''',
+                    simone.soldateschi@rackspace.co.uk,
+                    suraj.thapa@rackspace.com,
+                    teddy.schmitz@rackspace.com''',
     description='Rackspace Auto Scale made easy',
     entry_points={
         "console_scripts": ['autoscale = raxas.autoscale:main']
