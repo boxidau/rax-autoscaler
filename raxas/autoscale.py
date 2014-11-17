@@ -47,6 +47,7 @@ else:
     logging.config.fileConfig(logging_conf_file)
     logger = logging.getLogger(__name__)
 
+
 def webhook_call(config, group, policy, key):
 
     url_list = common.get_webhook_value(config_data, group, policy)
@@ -76,7 +77,8 @@ def webhook_call(config, group, policy, key):
         logger.error('Unable to get CHECK_TYPE from json file')
         return
 
-    metric_name = common.get_group_value(config_data, group, 'METRIC_NAME')
+    metric_name = common.get_group_value(config_data, group,
+                                         'METRIC_NAME')
     if check_type is None:
         logger.error('Unable to get METRIC_NAME from json file')
         return
@@ -93,8 +95,13 @@ def webhook_call(config, group, policy, key):
         logger.error('Unable to get SCALE_DOWN_THRESHOLD from json file')
         return
 
-    data = json.dumps([group_id, up_policy_id, down_policy_id, check_type,
-                      metric_name, up_threshold, down_threshold])
+    data = json.dumps({'group_id': group_id,
+                       'scale_up_policy': up_policy_id,
+                       'scale_down_policy': down_policy_id,
+                       'check_type': check_type,
+                       'metric_name': metric_name,
+                       'scale_up_threshold': up_threshold,
+                       'scale_down_threshold': down_threshold})
 
     urls = url_list[key]
 
