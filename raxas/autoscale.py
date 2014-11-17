@@ -114,7 +114,7 @@ def autoscale(group, config_data, args):
     if scalingGroup is None:
         return 1
 
-    check_type = common.get_group_value(config_data, group, 'CHECK_TYPE')
+    check_type = common.get_group_value(config_data, group, 'check_type')
 
     check_config = common.get_group_value(config_data, group, 'check_config')
 
