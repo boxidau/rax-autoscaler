@@ -24,6 +24,7 @@ import time
 import os
 import sys
 import logging.config
+import random
 from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 import cloudmonitor
@@ -148,6 +149,9 @@ def autoscale(group, config_data, args):
     # Get all CloudMonitoring entities on the account
     entities = cm.list_entities()
 
+    # Shuffle entities so the sample uses different servers
+    entities = random.sample(entities, len(entities))
+
     for ent in entities:
         # Check if the entity is also in the scaling group
         if ent.agent_id in scalingGroup.get_state()['active']:
@@ -168,6 +172,8 @@ def autoscale(group, config_data, args):
 
         # Restrict number of data points to save on API calls
         if len(results) >= args['max_sample']:
+            logger.info('--max-sample value of ' + str(args['max_sample']) +
+                        ' reached, not gathering any more statistics')
             break
 
     if len(results) == 0:
