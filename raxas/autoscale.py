@@ -246,6 +246,9 @@ def main():
                         action='store_true',
                         help='Do not actually perform any scaling operations '
                         'or call webhooks')
+    parser.add_argument('--max-sample', required=False, default=10, type=int,
+                        help='Maximum number of servers to obtain monitoring '
+                        'samples from')
 
     args = vars(parser.parse_args())
 
