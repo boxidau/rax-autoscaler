@@ -36,7 +36,7 @@ def add_cm_check(server_id, check_type, check_config):
 
         # check if the check already exists
         exist_check = len([c for c in entity.list_checks()
-                               if c.type == check_type])
+                          if c.type == check_type])
 
         # add check if it does not exist
         ip_address = get_server_ipv4(server_id, _type='private')
