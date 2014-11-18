@@ -47,6 +47,13 @@ else:
 
 
 def exit_with_error(msg):
+    """This function prints error message and exit with error.
+
+    :param msg: error message
+    :type name: str
+    :returns: 1 (int) -- the return code
+
+    """
     if msg is None:
         try:
             log_file = logger.root.handlers[0].baseFilename
@@ -66,6 +73,15 @@ def exit_with_error(msg):
 
 
 def is_node_master(scalingGroup):
+    """This function checks scaling group state and determines if node is a master.
+
+    :param scalingGroup: data about servers in scaling group retrieve from
+                         cloudmonitor
+    :returns: 1 : if cluster state is unknown
+              2 : node is a master
+              3 : node is not a master
+
+    """
     masters = []
     node_id = common.get_machine_uuid()
     sg_state = scalingGroup.get_state()
@@ -76,7 +92,7 @@ def is_node_master(scalingGroup):
         masters.append(sg_state['active'][1])
     else:
         logger.error('Unknown cluster state')
-    return 1
+        return 1
 
     if node_id in masters:
         logger.info('Node is a master, continuing')
@@ -87,7 +103,13 @@ def is_node_master(scalingGroup):
 
 
 def get_scaling_group(group, config_data):
+    """This function checks and gets active servers in scaling group
 
+    :param group: group name
+    :param config_data: json configuration data
+    :returns: scalingGroup if server state is active else null
+
+    """
     group_id = common.get_group_value(config_data, group, 'group_id')
     if group_id is None:
         logger.error('Unable to get group_id from json file')
@@ -108,6 +130,13 @@ def get_scaling_group(group, config_data):
 
 
 def autoscale(group, config_data, args):
+    """This function executes scale up or scale down policy
+
+    :param group: group name
+    :param config_data: json configuration data
+    :param args: user provided arguments
+
+    """
     au = pyrax.autoscale
 
     scalingGroup = get_scaling_group(group, config_data)
@@ -219,6 +248,11 @@ def autoscale(group, config_data, args):
 
 
 def main():
+    """This function validates user arguments and data in configuration file.
+       It calls auth class for authentication and autoscale to execute scaling
+       policy
+
+    """
 
     parser = argparse.ArgumentParser()
 

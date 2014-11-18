@@ -30,6 +30,12 @@ import urllib2
 
 
 def check_file(fname):
+    """This function checks if file exists and is readable.
+
+      :param fname: file name
+      :returns: file name with absolute path
+
+    """
     file_abspath = os.path.abspath(fname)
     if os.path.isfile(file_abspath) and os.access(file_abspath, os.R_OK):
         return file_abspath
@@ -44,6 +50,12 @@ def check_file(fname):
 
 
 def get_config(config_file):
+    """This function read and returns jsons configuration data
+
+      :param config_file: json configuration file name
+      :returns: json data
+
+    """
     try:
         json_data = open(config_file)
         data = json.load(json_data)
@@ -53,6 +65,11 @@ def get_config(config_file):
 
 
 def get_machine_uuid():
+    """This function uses subprocess to get node uuid
+
+      :returns: machine uuid
+
+    """
     name = subprocess.Popen(['xenstore-read name'], shell=True,
                             stdout=subprocess.PIPE).communicate()[0]
     id = name.strip()
@@ -60,6 +77,15 @@ def get_machine_uuid():
 
 
 def get_user_value(args, config, key):
+    """This function returns value associated with the key if its available in
+       user arguments else in json config file.
+
+      :param args: user arguments
+      :param config: json configuration data
+      :param key: key name
+      :returns: value associated with key
+
+    """
     if args[key] is None:
         try:
             value = config['auth'][key.lower()]
@@ -75,6 +101,15 @@ def get_user_value(args, config, key):
 
 
 def get_group_value(config, group, key):
+    """This function returns value in autoscale_groups section associated with
+       provided key.
+
+      :param group: group name
+      :param config: json configuration data
+      :param key: key name
+      :returns: value associated with key
+
+    """
     try:
         value = config['autoscale_groups'][group][key]
         if not value:
@@ -85,6 +120,15 @@ def get_group_value(config, group, key):
 
 
 def get_webhook_value(config, group, key):
+    """This function returns value in webhooks section of json file which is
+       associated with provided key.
+
+      :param group: group name
+      :param config: json configuration data
+      :param key: key name
+      :returns: value associated with key
+
+    """
     try:
         value = config['autoscale_groups'][group]['webhooks'][key]
         if not value:
@@ -95,6 +139,15 @@ def get_webhook_value(config, group, key):
 
 
 def webhook_call(config_data, group, policy, key):
+    """This function makes webhook calls.
+
+      :param config_data: json configuration data
+      :param group: group name
+      :param policy: policy type
+      :param key: key name
+      :returns: 1 (int) -- return value
+
+    """
 
     url_list = get_webhook_value(config_data, group, policy)
     if url_list is None:
