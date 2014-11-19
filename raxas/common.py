@@ -89,7 +89,7 @@ def get_user_value(args, config, key):
     if args[key] is None:
         try:
             value = config['auth'][key.lower()]
-            if not value:
+            if value == None:
                 return
         except:
             raise Exception("Invalid config, '" + key +
@@ -112,7 +112,7 @@ def get_group_value(config, group, key):
     """
     try:
         value = config['autoscale_groups'][group][key]
-        if not value:
+        if value == None:
             return
         return value
     except:
@@ -131,7 +131,7 @@ def get_webhook_value(config, group, key):
     """
     try:
         value = config['autoscale_groups'][group]['webhooks'][key]
-        if not value:
+        if value == None:
             return
         return value
     except:
