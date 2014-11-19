@@ -46,8 +46,7 @@ teddy.schmitz@rackspace.com''',
     include_package_data=True,
     install_requires=[
         "pyrax",
-        "requests",
-        "termcolor",
+        "termcolor"
     ],
     license='Apache License, Version 2.0',
     long_description=open('README.txt').read(),
