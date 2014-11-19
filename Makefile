@@ -13,7 +13,7 @@ all: check source
 source:
 	#pandoc -f markdown_github -t plain -o README.txt README.md
 	$(PYTHON) setup.py sdist
-	rm -rf RAX_AutoScaler.egg-info
+	rm -rf rax_autoscaler.egg-info
 
 upload: source
 	$(PYTHON) setup.py sdist upload
@@ -38,8 +38,7 @@ check:
 	# pymetrics
 
 clean:
-	rm -rf build/ MANIFEST dist build my_program.egg-info deb_dist
+	rm -rf build/ MANIFEST dist build rax_autoscaler.egg-info deb_dist
 	find . -name '*.pyc' -delete
-	rm -rf RAX_AutoScaler.egg-info
 	rm README.txt
 	$(PYTHON) setup.py clean
