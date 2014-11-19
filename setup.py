@@ -32,7 +32,9 @@ setup(
     author_email='''simon.mirco@rackspace.com,
 simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com,
 teddy.schmitz@rackspace.com''',
-    data_files=[('config', ['config/*']), ],
+    data_files=[('config', ['config/config-template.json',
+                            'config/config.include',
+                            'config/logging.conf']), ],
     description='Rackspace Auto Scale made easy',
     entry_points={
         "console_scripts": ['autoscale = raxas.autoscale:main']
