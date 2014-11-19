@@ -3,7 +3,7 @@
 PYTHON=`which python`
 NAME=`python setup.py --name`
 
-all: check test source
+all: check source
 
 #init:
 #	pip install -r requirements.txt --use-mirrors
