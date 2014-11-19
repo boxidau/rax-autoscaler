@@ -32,7 +32,9 @@ setup(
     author_email='''simon.mirco@rackspace.com,
 simone.soldateschi@rackspace.co.uk, suraj.thapa@rackspace.com,
 teddy.schmitz@rackspace.com''',
-    data_files=[('/etc/rax-autoscaler', ['config/logging.conf', 'config/config-template.json'])],
+    data_files=[('config', ['config/config-template.json',
+                            'config/config.include',
+                            'config/logging.conf']), ],
     description='Rackspace Auto Scale made easy',
     entry_points={
         "console_scripts": ['autoscale = raxas.autoscale:main']
@@ -50,7 +52,7 @@ teddy.schmitz@rackspace.com''',
     license='Apache License, Version 2.0',
     long_description=open('README.txt').read(),
     packages=find_packages(),
-    package_data={'docs': ['*.rst'], 'raxas': ['requirements.txt']},
+    package_data={'docs': ['*.rst'], 'raxas': ['requirements.txt'], },
     # scripts=['raxas'],
     classifiers=[
         'Development Status :: 3 - Alpha',
