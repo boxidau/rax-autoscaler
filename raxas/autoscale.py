@@ -24,6 +24,7 @@ import time
 import os
 import sys
 import logging.config
+import random
 from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 import cloudmonitor
@@ -31,7 +32,7 @@ from version import return_version
 
 
 # CHECK logging.conf
-logging_config = common.check_file('../config/logging.conf')
+logging_config = common.check_file('logging.conf')
 
 if logging_config is None:
     logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
@@ -143,8 +144,12 @@ def autoscale(group, config_data, args):
     if scalingGroup is None:
         return 1
 
+    check_type = common.get_group_value(config_data, group, 'check_type')
+
+    check_config = common.get_group_value(config_data, group, 'check_config')
+
     for s_id in scalingGroup.get_state()['active']:
-        rv = cloudmonitor.add_cm_cpu_check(s_id)
+        rv = cloudmonitor.add_cm_check(s_id, check_type, check_config)
 
     logger.info('Cluster Mode Enabled: ' + str(args['cluster']))
 
@@ -172,7 +177,10 @@ def autoscale(group, config_data, args):
     cm = pyrax.cloud_monitoring
     # Get all CloudMonitoring entities on the account
     entities = cm.list_entities()
-    # TODO: spawn threads for each valid entity to make data collection faster
+
+    # Shuffle entities so the sample uses different servers
+    entities = random.sample(entities, len(entities))
+
     for ent in entities:
         # Check if the entity is also in the scaling group
         if ent.agent_id in scalingGroup.get_state()['active']:
@@ -190,6 +198,12 @@ def autoscale(group, config_data, args):
                                     ', value: ' + str(data[point]['average']))
                         results.append(float(data[point]['average']))
                         break
+
+        # Restrict number of data points to save on API calls
+        if len(results) >= args['max_sample']:
+            logger.info('--max-sample value of ' + str(args['max_sample']) +
+                        ' reached, not gathering any more statistics')
+            break
 
     if len(results) == 0:
         logger.error('No data available')
@@ -276,6 +290,9 @@ def main():
                         action='store_true',
                         help='Do not actually perform any scaling operations '
                         'or call webhooks')
+    parser.add_argument('--max-sample', required=False, default=10, type=int,
+                        help='Maximum number of servers to obtain monitoring '
+                        'samples from')
 
     args = vars(parser.parse_args())
 

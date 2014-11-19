@@ -40,6 +40,38 @@ You can also invoke the script with the --cluster option this should be used whe
 
 Once tested you should configure this script to run as a cron job either on a management instance or on all cluster members
 
+##Cloud Init
+You can use the cloud-config file to auto-install RAX-Autoscaler on new servers.  For example to do so on Rackspace cloud using supernova
+
+```
+supernova <region> boot --user-data ./cloud-config --image <image id/name> --flavor <flavor id/name> --config-drive=true <server name>
+```
+
+To use this with autoscale you would want to set the userdata of your launch configuration to the base64 encoded string of the file:
+
+
+```
+"launchConfiguration": {
+        "args": {
+            "server": {
+                "config_drive" : true,
+                "flavorRef": "general1-1",
+                "imageRef": "CentOS 6.5 (PVHVM)",
+                "key_name" : "MY_SSH_KEY",
+                "user_data" : "I2Nsb3VkLWNvbmZpZwoKcGFja2FnZXM6CiAgLSBweXRob24tcGlwCgpydW5jbWQ6CiAgLSBbIHBpcCwgaW5zdGFsbCwgUkFYLUF1dG9TY2FsZXIgXQo=",
+                "name": "test-autoscale"
+            }
+        },
+        "type": "launch_server"
+    }
+```
+
+This has been tested on these images:
+
+- Ubuntu 14.04 LTS (PVHVM)
+- CentOS 6.5 (PVHVM)
+
+
 ### Note
 
 RAX-AutoScaler depends on Rackspace Monitoring Agent to get the data from nodes in scaling group.
