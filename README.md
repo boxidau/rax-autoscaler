@@ -13,7 +13,7 @@ Can be used and installed on the auto-scale group members or on a dedicated mana
 ## Installation
 
 ```
-pip install RAX-AutoScaler
+pip install rax-autoscaler
 ```
 
 ### Configuration
@@ -58,7 +58,7 @@ To use this with autoscale you would want to set the userdata of your launch con
                 "flavorRef": "general1-1",
                 "imageRef": "CentOS 6.5 (PVHVM)",
                 "key_name" : "MY_SSH_KEY",
-                "user_data" : "I2Nsb3VkLWNvbmZpZwoKcGFja2FnZXM6CiAgLSBweXRob24tcGlwCgpydW5jbWQ6CiAgLSBbIHBpcCwgaW5zdGFsbCwgUkFYLUF1dG9TY2FsZXIgXQo=",
+                "user_data" : "I2Nsb3VkLWNvbmZpZwoKcGFja2FnZXM6CiAgLSBweXRob24tcGlwCgpydW5jbWQ6CiAgLSBbIHBpcCwgaW5zdGFsbCwgcmF4LWF1dG9zY2FsZXIgXQo=",
                 "name": "test-autoscale"
             }
         },
