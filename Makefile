@@ -11,7 +11,7 @@ all: check source
 #dist: source deb
 
 source:
-	#pandoc -f markdown_github -t plain -o README.txt README.md
+	pandoc -f markdown_github -t plain -o README.txt README.md
 	$(PYTHON) setup.py sdist
 	rm -rf rax_autoscaler.egg-info
 
