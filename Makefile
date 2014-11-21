@@ -3,7 +3,7 @@
 PYTHON=`which python`
 NAME=`python setup.py --name`
 
-all: check source
+all: check 
 
 #init:
 #	pip install -r requirements.txt --use-mirrors
@@ -11,7 +11,7 @@ all: check source
 #dist: source deb
 
 source:
-	#pandoc -f markdown_github -t plain -o README.txt README.md
+	pandoc -f markdown_github -t plain -o README.txt README.md
 	$(PYTHON) setup.py sdist
 	rm -rf rax_autoscaler.egg-info
 
