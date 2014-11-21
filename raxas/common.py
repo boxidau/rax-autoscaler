@@ -145,53 +145,44 @@ def webhook_call(config_data, group, policy, key):
       :param group: group name
       :param policy: policy type
       :param key: key name
-      :returns: 1 (int) -- return value
 
     """
 
     url_list = get_webhook_value(config_data, group, policy)
     if url_list is None:
-        logger.error('Unable to get webhook urls from json file')
         return
 
     group_id = get_group_value(config_data, group, 'group_id')
     if group_id is None:
-        logger.error('Unable to get group_id from json file')
         return
 
     up_policy_id = get_group_value(config_data, group,
                                    'scale_up_policy')
     if up_policy_id is None:
-        logger.error('Unable to get scale_up_policy from json file')
         return
 
     down_policy_id = get_group_value(config_data, group,
                                      'scale_down_policy')
     if down_policy_id is None:
-        logger.error('Unable to get scale_down_policy from json file')
         return
 
     check_type = get_group_value(config_data, group, 'check_type')
     if check_type is None:
-        logger.error('Unable to get check_type from json file')
         return
 
     metric_name = get_group_value(config_data, group,
                                   'metric_name')
     if check_type is None:
-        logger.error('Unable to get metric_name from json file')
         return
 
     up_threshold = get_group_value(config_data, group,
                                    'scale_up_threshold')
     if up_threshold is None:
-        logger.error('Unable to get scale_up_threshold from json file')
         return
 
     down_threshold = get_group_value(config_data, group,
                                      'scale_down_threshold')
     if up_threshold is None:
-        logger.error('Unable to get scale_down_threshold from json file')
         return
 
     data = json.dumps({'group_id': group_id,
@@ -209,5 +200,3 @@ def webhook_call(config_data, group, policy, key):
         f = urllib2.urlopen(req)
         response = f.read()
         f.close()
-
-    return 1
