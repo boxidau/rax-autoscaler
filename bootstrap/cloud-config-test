@@ -4,11 +4,14 @@
 packages:
   - python-pip
 
-# Install rax-autoscaler
+# Install rax-autoscaler, pystress
 # Create /etc/rax-autoscaler to store config.json
+# Execute pystess for 5 minutes
 runcmd:
     - [ pip, install, rax-autoscaler ]
+    - [ pip, install, pystress ]
     - [ mkdir, '-p', /etc/rax-autoscaler ]
+    - [ pystress, '300' ]
 
 # Create cron job to execute autoscale every minute and redirect STDOUT to /tmp/autoscale.log
 # Create config.json file for autoscaler
