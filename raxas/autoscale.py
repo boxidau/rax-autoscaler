@@ -117,6 +117,8 @@ def get_scaling_group(group, config_data):
         return
 
     scalingGroup = cloudmonitor.scaling_group_servers(group_id)
+    if scalingGroup is None:
+        return
     # Check active server(s) in scaling group
     if len(scalingGroup.get_state()['active']) == 0:
         return
@@ -143,10 +145,12 @@ def autoscale(group, config_data, args):
     scalingGroup = get_scaling_group(group, config_data)
     if scalingGroup is None:
         return 1
-
     check_type = common.get_group_value(config_data, group, 'check_type')
-
+    if check_type is None:
+        return 1
     check_config = common.get_group_value(config_data, group, 'check_config')
+    if check_config is None:
+        return 1
 
     for s_id in scalingGroup.get_state()['active']:
         rv = cloudmonitor.add_cm_check(s_id, check_type, check_config)
@@ -237,8 +241,9 @@ def autoscale(group, config_data, args):
                 logger.info('Scale up prevented by --dry-run')
                 logger.info('Scale up policy executed ('
                             + scale_policy_id + ')')
-        except:
-            logger.warning('Cannot execute scale up policy')
+        except Exception, e:
+            logger.warning('Scale up: ' + str(e))
+            logger.warning('Scale down: ' + str(e))
     elif average < scale_down_threshold:
         try:
             logger.info('Below Threshold - Scaling Down')
@@ -254,8 +259,8 @@ def autoscale(group, config_data, args):
                 logger.info('Scale down policy executed (' +
                             scale_policy_id + ')')
 
-        except:
-            logger.warning('Cannot execute scale down policy')
+        except Exception, e:
+            logger.warning('Scale down: ' + str(e))
 
     else:
         logger.info('Cluster within target paramters')
@@ -321,17 +326,18 @@ def main():
         exit_with_error("Unable to find group '" + args['as_group'] +
                         "' in " + config_file)
 
-    failed = 0
-    try:
-        username = common.get_user_value(args, config_data, 'os_username')
-        api_key = common.get_user_value(args, config_data, 'os_password')
-        region = common.get_user_value(args, config_data, 'os_region_name')
-    except Exception, err:
-        logger.error(err)
-        failed = 1
+    username = common.get_user_value(args, config_data, 'os_username')
+    if username is None:
+        exit_with_error("Invalid config, mandatory key missing: 'os_username'")
+    api_key = common.get_user_value(args, config_data, 'os_password')
+    if api_key is None:
+        exit_with_error("Invalid config, mandatory key missing: 'os_password'")
+    region = common.get_user_value(args, config_data, 'os_region_name')
+    if region is None:
+        exit_with_error("Invalid config, mandatory key " +
+                        "missing: 'os_region_name'")
 
-    if failed == 0:
-        session = Auth(username, api_key, region)
+    session = Auth(username, api_key, region)
 
     if session.authenticate() is True:
         rv = autoscale(args['as_group'], config_data, args)
@@ -344,7 +350,7 @@ def main():
             else:
                 logger.info('completed successfully: '+log_file)
         else:
-            exit_with_error('Unable to proceed further')
+            exit_with_error(None)
     else:
         exit_with_error('Authentication failed')
 
