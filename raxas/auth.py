@@ -184,8 +184,8 @@ class Auth(object):
             logger.debug(traceback.format_exc())
             return False
         except:
-            logger.error("cannot read token data from file '%s'" %
-                         self._token_filename)
+            logger.warning("cannot read token data from file '%s'" %
+                           self._token_filename)
             logger.debug(traceback.format_exc())
             return False
         try:
