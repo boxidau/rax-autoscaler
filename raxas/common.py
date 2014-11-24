@@ -27,6 +27,12 @@ import subprocess
 import datetime
 import json
 import urllib2
+import logging
+
+
+def get_logger():
+    logger = logging.getLogger(__name__)
+    return logger
 
 
 def check_file(fname):
@@ -56,12 +62,16 @@ def get_config(config_file):
       :returns: json data
 
     """
+    logger = get_logger()
+    logger.info("Loading config file: '" + config_file + "'")
     try:
         json_data = open(config_file)
         data = json.load(json_data)
         return data
-    except:
-        return
+    except Exception, e:
+        logger.error("Error: " + str(e))
+
+    return None
 
 
 def get_machine_uuid():
@@ -70,10 +80,16 @@ def get_machine_uuid():
       :returns: machine uuid
 
     """
-    name = subprocess.Popen(['xenstore-read name'], shell=True,
-                            stdout=subprocess.PIPE).communicate()[0]
-    id = name.strip()
-    return id[9:]
+    logger = get_logger()
+    try:
+        name = subprocess.Popen(['xenstore-read name'], shell=True,
+                                stdout=subprocess.PIPE).communicate()[0]
+        id = name.strip()
+        return id[9:]
+    except Exception, e:
+        logger.error("Error: " + str(e))
+
+    return None
 
 
 def get_user_value(args, config, key):
@@ -86,17 +102,17 @@ def get_user_value(args, config, key):
       :returns: value associated with key
 
     """
+    logger = get_logger()
+    value = None
     if args[key] is None:
         try:
             value = config['auth'][key.lower()]
-            if value is None:
-                return
         except:
-            raise Exception("Invalid config, '" + key +
-                            "' key not found in authentication section")
-            return
+            logger.error("Invalid config, '" + key +
+                         "' key not found in authentication section")
     else:
         value = args[key]
+
     return value
 
 
@@ -104,19 +120,23 @@ def get_group_value(config, group, key):
     """This function returns value in autoscale_groups section associated with
        provided key.
 
+    :type config: object
       :param group: group name
       :param config: json configuration data
       :param key: key name
       :returns: value associated with key
 
     """
+    logger = get_logger()
     try:
         value = config['autoscale_groups'][group][key]
-        if value is None:
-            return
-        return value
+        if value is not None:
+            return value
     except:
-        return
+        logger.error("Error: unable to get value for key '" + key +
+                     "' from group '" + group + "'")
+
+    return None
 
 
 def get_webhook_value(config, group, key):
@@ -129,13 +149,16 @@ def get_webhook_value(config, group, key):
       :returns: value associated with key
 
     """
+    logger = get_logger()
     try:
         value = config['autoscale_groups'][group]['webhooks'][key]
-        if value is None:
-            return
-        return value
+        if value is not None:
+            return value
     except:
-        return
+        logger.warning("Unable to find value for key: '" + key +
+                       "' in group: '" + group + "'")
+
+    return None
 
 
 def webhook_call(config_data, group, policy, key):
@@ -147,43 +170,44 @@ def webhook_call(config_data, group, policy, key):
       :param key: key name
 
     """
+    logger = get_logger()
 
     url_list = get_webhook_value(config_data, group, policy)
     if url_list is None:
-        return
+        return None
 
     group_id = get_group_value(config_data, group, 'group_id')
     if group_id is None:
-        return
+        return None
 
     up_policy_id = get_group_value(config_data, group,
                                    'scale_up_policy')
     if up_policy_id is None:
-        return
+        return None
 
     down_policy_id = get_group_value(config_data, group,
                                      'scale_down_policy')
     if down_policy_id is None:
-        return
+        return None
 
     check_type = get_group_value(config_data, group, 'check_type')
     if check_type is None:
-        return
+        return None
 
     metric_name = get_group_value(config_data, group,
                                   'metric_name')
     if check_type is None:
-        return
+        return None
 
     up_threshold = get_group_value(config_data, group,
                                    'scale_up_threshold')
     if up_threshold is None:
-        return
+        return None
 
     down_threshold = get_group_value(config_data, group,
                                      'scale_down_threshold')
     if up_threshold is None:
-        return
+        return None
 
     data = json.dumps({'group_id': group_id,
                        'scale_up_policy': up_policy_id,
@@ -194,9 +218,15 @@ def webhook_call(config_data, group, policy, key):
                        'scale_down_threshold': down_threshold})
 
     urls = url_list[key]
-
     for url in urls:
-        req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
-        f = urllib2.urlopen(req)
-        response = f.read()
-        f.close()
+        logger.info("Sending POST request to url: '" + url + "'")
+        try:
+            req = urllib2.Request(url, data,
+                                  {'Content-Type': 'application/json'})
+            f = urllib2.urlopen(req)
+            response = f.read()
+            f.close()
+        except Exception, e:
+            logger.warning(str(e))
+
+    return None
