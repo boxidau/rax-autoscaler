@@ -58,16 +58,16 @@ def exit_with_error(msg):
     if msg is None:
         try:
             log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: ' + log_file)
+            logger.info('completed with an error: %s' % log_file)
         except:
             print ('(info) rax-autoscale completed with an error')
     else:
         try:
             logger.error(msg)
             log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: ' + log_file)
+            logger.info('completed with an error: %s' % log_file)
         except:
-            print ('(error) ' + msg)
+            print ('(error) %s' % msg)
             print ('(info) rax-autoscale completed with an error')
 
     exit(1)
@@ -87,7 +87,7 @@ def is_node_master(scalingGroup):
     node_id = common.get_machine_uuid()
     sg_state = scalingGroup.get_state()
     if len(sg_state['active']) == 1:
-        masters.push(sg_state['active'][0])
+        masters.append(sg_state['active'][0])
     elif len(sg_state['active']) > 1:
         masters.append(sg_state['active'][0])
         masters.append(sg_state['active'][1])
@@ -155,7 +155,7 @@ def autoscale(group, config_data, args):
     for s_id in scalingGroup.get_state()['active']:
         rv = cloudmonitor.add_cm_check(s_id, check_type, check_config)
 
-    logger.info('Cluster Mode Enabled: ' + str(args['cluster']))
+    logger.info('Cluster Mode Enabled: %s' % str(args['cluster']))
 
     if args['cluster']:
         rv = is_node_master(scalingGroup)
@@ -242,8 +242,8 @@ def autoscale(group, config_data, args):
                 logger.info('Scale up policy executed ('
                             + scale_policy_id + ')')
         except Exception, e:
-            logger.warning('Scale up: ' + str(e))
-            logger.warning('Scale down: ' + str(e))
+            logger.warning('Scale up: %s' % str(e))
+            logger.warning('Scale down: %s' % str(e))
     elif average < scale_down_threshold:
         try:
             logger.info('Below Threshold - Scaling Down')
@@ -260,7 +260,7 @@ def autoscale(group, config_data, args):
                             scale_policy_id + ')')
 
         except Exception, e:
-            logger.warning('Scale down: ' + str(e))
+            logger.warning('Scale down: %s' % str(e))
 
     else:
         logger.info('Cluster within target paramters')
@@ -304,8 +304,8 @@ def main():
     # CONFIG.ini
     config_file = common.check_file(args['config_file'])
     if config_file is None:
-        exit_with_error("Either file is missing or is not readable: '" +
-                        args['config_file']+"'")
+        exit_with_error("Either file is missing or is not readable: '%s'"
+                        % args['config_file'])
 
     # Show Version
     logger.info(return_version())
@@ -328,14 +328,13 @@ def main():
 
     username = common.get_user_value(args, config_data, 'os_username')
     if username is None:
-        exit_with_error("Invalid config, mandatory key missing: 'os_username'")
+        exit_with_error(None)
     api_key = common.get_user_value(args, config_data, 'os_password')
     if api_key is None:
-        exit_with_error("Invalid config, mandatory key missing: 'os_password'")
+        exit_with_error(None)
     region = common.get_user_value(args, config_data, 'os_region_name')
     if region is None:
-        exit_with_error("Invalid config, mandatory key " +
-                        "missing: 'os_region_name'")
+        exit_with_error(None)
 
     session = Auth(username, api_key, region)
 
@@ -348,7 +347,7 @@ def main():
             if log_file is None:
                 logger.info('completed successfull')
             else:
-                logger.info('completed successfully: '+log_file)
+                logger.info('completed successfully: %s' % log_file)
         else:
             exit_with_error(None)
     else:
