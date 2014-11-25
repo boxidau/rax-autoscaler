@@ -87,7 +87,7 @@ def is_node_master(scalingGroup):
     node_id = common.get_machine_uuid()
     sg_state = scalingGroup.get_state()
     if len(sg_state['active']) == 1:
-        masters.push(sg_state['active'][0])
+        masters.append(sg_state['active'][0])
     elif len(sg_state['active']) > 1:
         masters.append(sg_state['active'][0])
         masters.append(sg_state['active'][1])
