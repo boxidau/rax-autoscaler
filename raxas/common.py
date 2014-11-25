@@ -63,7 +63,7 @@ def get_config(config_file):
 
     """
     logger = get_logger()
-    logger.info("Loading config file: '" + config_file + "'")
+    logger.info("Loading config file: '%s'" % config_file)
     try:
         json_data = open(config_file)
         data = json.load(json_data)
@@ -155,8 +155,8 @@ def get_webhook_value(config, group, key):
         if value is not None:
             return value
     except:
-        logger.warning("Unable to find value for key: '" + key +
-                       "' in group: '" + group + "'")
+        logger.warning("Unable to find value for key: '%s' in group '%s'"
+                       %(key, group))
 
     return None
 
@@ -172,6 +172,7 @@ def webhook_call(config_data, group, policy, key):
     """
     logger = get_logger()
 
+    logger.info('Launching %s webhook call' % key)
     url_list = get_webhook_value(config_data, group, policy)
     if url_list is None:
         return None
@@ -219,7 +220,7 @@ def webhook_call(config_data, group, policy, key):
 
     urls = url_list[key]
     for url in urls:
-        logger.info("Sending POST request to url: '" + url + "'")
+        logger.info("Sending POST request to url: '%s'" % url)
         try:
             req = urllib2.Request(url, data,
                                   {'Content-Type': 'application/json'})
