@@ -156,7 +156,7 @@ def get_webhook_value(config, group, key):
             return value
     except:
         logger.warning("Unable to find value for key: '%s' in group '%s'"
-                       %(key, group))
+                       % (key, group))
 
     return None
 
