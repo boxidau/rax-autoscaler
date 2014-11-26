@@ -30,6 +30,7 @@ import random
 from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 import cloudmonitor
+import subprocess
 from version import return_version
 
 
@@ -276,7 +277,7 @@ def main():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--as-group', required=True,
+    parser.add_argument('--as-group', required=False,
                         help='The autoscale group config ID')
     parser.add_argument('--os-username', required=False,
                         help='Rackspace Cloud user name')
@@ -320,12 +321,27 @@ def main():
     if config_data is None:
         exit_with_error('Failed to read config file: ' + config_file)
 
-    # Check if group exists
-    try:
-        group_value = config_data["autoscale_groups"][args['as_group']]
-    except:
-        exit_with_error("Unable to find group '" + args['as_group'] +
-                        "' in " + config_file)
+    # Get group
+    if not args['as_group']:
+        if len(config_data['autoscale_groups'].keys()) == 1:
+            as_group = config_data['autoscale_groups'].keys()[0]
+        else:
+            try:
+                hostname = subprocess.check_output(['hostname'])
+                hostname = (hostname.strip()).rsplit('-', 1)[0]
+                group_value = config_data["autoscale_groups"][hostname]
+                as_group = hostname
+            except:
+                logger.warning("Multiple group found in config file, "
+                               "please use 'as-group' option")
+                exit_with_error('Unable to identify targeted group')
+    else:
+        try:
+            group_value = config_data["autoscale_groups"][args['as_group']]
+            as_group = args['as_group']
+        except:
+            exit_with_error("Unable to find group '" + args['as_group'] +
+                            "' in " + config_file)
 
     username = common.get_user_value(args, config_data, 'os_username')
     if username is None:
@@ -340,7 +356,7 @@ def main():
     session = Auth(username, api_key, region)
 
     if session.authenticate() is True:
-        rv = autoscale(args['as_group'], config_data, args)
+        rv = autoscale(as_group, config_data, args)
         if rv is None:
             log_file = None
             if hasattr(logger.root.handlers[0], 'baseFilename'):
