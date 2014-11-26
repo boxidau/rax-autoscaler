@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+#
 # this file is part of 'RAX-AutoScaler'
 #
 # Copyright 2014 Rackspace US, Inc.
