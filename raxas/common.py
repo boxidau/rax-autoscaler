@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+#
 # this file is part of 'RAX-AutoScaler'
 #
 # Copyright 2014 Rackspace US, Inc.
@@ -156,7 +158,7 @@ def get_webhook_value(config, group, key):
             return value
     except:
         logger.warning("Unable to find value for key: '%s' in group '%s'"
-                       %(key, group))
+                       % (key, group))
 
     return None
 

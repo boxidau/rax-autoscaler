@@ -18,7 +18,7 @@ pip install rax-autoscaler
 
 ### Configuration
 Edit config.json adding the following:
-- API username 
+- API username
 - API key
 - Region name
 - Autoscaling group section should contain:
@@ -71,6 +71,30 @@ This has been tested on these images:
 - Ubuntu 14.04 LTS (PVHVM)
 - CentOS 6.5 (PVHVM)
 
+In the example the value of ```user_data``` contains the base64 encoded version of the following script:
+
+```
+$ echo -n "I2Nsb3VkLWNvbmZpZwoKcGFja2FnZXM6CiAgLSBweXRob24tcGlwCgpydW5jbWQ6CiAgLSBbIHBpcCwgaW5zdGFsbCwgUkFYLUF1dG9TY2FsZXIgXQo=" | base64 -D
+#cloud-config
+
+packages:
+- python-pip
+
+runcmd:
+- [ pip, install, RAX-AutoScaler ]
+```
+
+FYI - To base64 encode a script:
+
+```
+cat /path/to/USER_DATA | base64
+```
+
+Size of ```USER_DATA``` can be reduced with gzip:
+
+```
+cat /path/to/USER_DATA | gzip | base64
+```
 
 ### Note
 
@@ -102,4 +126,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
-

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+#
 # this file is part of 'RAX-AutoScaler'
 #
 # Copyright 2014 Rackspace US, Inc.
@@ -243,7 +245,6 @@ def autoscale(group, config_data, args):
                             + scale_policy_id + ')')
         except Exception, e:
             logger.warning('Scale up: %s' % str(e))
-            logger.warning('Scale down: %s' % str(e))
     elif average < scale_down_threshold:
         try:
             logger.info('Below Threshold - Scaling Down')

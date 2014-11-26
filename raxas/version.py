@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+#
 # this file is part of 'RAX-AutoScaler'
 #
 # Copyright 2014 Rackspace US, Inc.
@@ -16,7 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION = "0.2.14"
+VERSION = "0.2.16"
 
 
 def return_version():
