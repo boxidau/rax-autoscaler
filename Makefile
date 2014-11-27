@@ -44,3 +44,8 @@ clean:
 	find . -name '*.pyc' -delete
 	rm README.txt
 	$(PYTHON) setup.py clean
+
+#doc:
+# Generate Sphinx documentation.
+doc:
+	cd docs && make clean && make html 

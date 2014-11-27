@@ -1,0 +1,6 @@
+colouredconsolehandler
+============================
+
+.. automodule:: colouredconsolehandler
+    :members:
+

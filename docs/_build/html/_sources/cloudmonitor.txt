@@ -1,0 +1,6 @@
+cloudmonitor
+============================
+
+.. automodule:: cloudmonitor
+    :members:
+

@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>autoscale &mdash; RAX-AutoScaler 0.2.16 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="RAX-AutoScaler 0.2.16 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-autoscale">
+<span id="autoscale"></span><h1>autoscale<a class="headerlink" href="#module-autoscale" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="autoscale.autoscale">
+<tt class="descclassname">autoscale.</tt><tt class="descname">autoscale</tt><big>(</big><em>group</em>, <em>config_data</em>, <em>args</em><big>)</big><a class="reference internal" href="_modules/autoscale.html#autoscale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#autoscale.autoscale" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function executes scale up or scale down policy</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>group</strong> &#8211; group name</li>
+<li><strong>config_data</strong> &#8211; json configuration data</li>
+<li><strong>args</strong> &#8211; user provided arguments</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="autoscale.exit_with_error">
+<tt class="descclassname">autoscale.</tt><tt class="descname">exit_with_error</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="_modules/autoscale.html#exit_with_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#autoscale.exit_with_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function prints error message and exit with error.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; error message</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">1 (int) &#8211; the return code</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="autoscale.get_scaling_group">
+<tt class="descclassname">autoscale.</tt><tt class="descname">get_scaling_group</tt><big>(</big><em>group</em>, <em>config_data</em><big>)</big><a class="reference internal" href="_modules/autoscale.html#get_scaling_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#autoscale.get_scaling_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function checks and gets active servers in scaling group</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>group</strong> &#8211; group name</li>
+<li><strong>config_data</strong> &#8211; json configuration data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">scalingGroup if server state is active else null</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="autoscale.is_node_master">
+<tt class="descclassname">autoscale.</tt><tt class="descname">is_node_master</tt><big>(</big><em>scalingGroup</em><big>)</big><a class="reference internal" href="_modules/autoscale.html#is_node_master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#autoscale.is_node_master" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function checks scaling group state and determines if node is a master.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scalingGroup</strong> &#8211; data about servers in scaling group retrieve from
+cloudmonitor</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">1 : if cluster state is unknown
+2 : node is a master
+3 : node is not a master</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="autoscale.main">
+<tt class="descclassname">autoscale.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/autoscale.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#autoscale.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function validates user arguments and data in configuration file.
+It calls auth class for authentication and autoscale to execute scaling
+policy</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/autoscale.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Simon Mirco, Simone Soldateschi, Suraj Thapa, Teddy Schmitz[D.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

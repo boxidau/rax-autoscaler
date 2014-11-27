@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>auth &mdash; RAX-AutoScaler 0.2.16 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="RAX-AutoScaler 0.2.16 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for auth</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+<span class="c">#</span>
+<span class="c"># this file is part of &#39;RAX-AutoScaler&#39;</span>
+<span class="c">#</span>
+<span class="c"># Copyright 2014 Rackspace US, Inc.</span>
+<span class="c">#</span>
+<span class="c"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c"># you may not use this file except in compliance with the License.</span>
+<span class="c"># You may obtain a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c"># See the License for the specific language governing permissions and</span>
+<span class="c"># limitations under the License.</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">pyrax</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+
+<div class="viewcode-block" id="Auth"><a class="viewcode-back" href="../auth.html#auth.Auth">[docs]</a><span class="k">class</span> <span class="nc">Auth</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    class which implements Rackspace Authentication</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span>
+                 <span class="n">identity_type</span><span class="o">=</span><span class="s">&quot;rackspace&quot;</span><span class="p">,</span>
+                 <span class="n">token_filename</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/.rax-autoscaler-token&#39;</span><span class="p">)):</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_username</span> <span class="o">=</span> <span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apikey</span> <span class="o">=</span> <span class="n">apikey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span> <span class="o">=</span> <span class="n">identity_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span> <span class="o">=</span> <span class="n">token_filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_token</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__str__</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s">&quot;username: </span><span class="si">%s</span><span class="s">, apikey: </span><span class="si">%s</span><span class="s">, identity_type: </span><span class="si">%s</span><span class="s">, &quot;</span>
+                <span class="s">&quot;region: </span><span class="si">%s</span><span class="s">, token_filename: </span><span class="si">%s</span><span class="s">, token: </span><span class="si">%s</span><span class="s">, &quot;</span>
+                <span class="s">&quot;tenant_id: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Auth.status"><a class="viewcode-back" href="../auth.html#auth.Auth.status">[docs]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        similar to __str__, but queries pyrax for values</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s">&quot;pyrax reports -- &quot;</span>
+                <span class="s">&quot;username: </span><span class="si">%s</span><span class="s">, apikey: </span><span class="si">%s</span><span class="s">, region: </span><span class="si">%s</span><span class="s">, token: </span><span class="si">%s</span><span class="s">, &quot;</span>
+                <span class="s">&quot;tenant_id: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">pi</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">token</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">))</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">token_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span>
+
+<div class="viewcode-block" id="Auth.authenticate"><a class="viewcode-back" href="../auth.html#auth.Auth.authenticate">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        authentication facility, tries to load a token from file,</span>
+<span class="sd">        authenticate with it, and if it fails then tries to authenticate</span>
+<span class="sd">         with credentials</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="c"># try to authenticate with token</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_token</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;loaded token &#39;</span><span class="si">%s</span><span class="s">&#39; from file &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_token</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;authenticated successfully&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;authenticated with token &#39;</span><span class="si">%s</span><span class="s">&#39; from file &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span>
+                             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">))</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;cannot authenticate with token &#39;</span><span class="si">%s</span><span class="s">&#39; &quot;</span>
+                             <span class="s">&quot;from file &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">))</span>
+        <span class="c"># try to authenticate with credentials</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_credentials</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;authenticated successfully&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;authenticated with credentials, username:</span><span class="si">%s</span><span class="s">,&quot;</span>
+                         <span class="s">&quot;api-key:</span><span class="si">%s</span><span class="s">, region:</span><span class="si">%s</span><span class="s">, identity_type:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;cannot authenticate with credentials, username:</span><span class="si">%s</span><span class="s">, &quot;</span>
+                         <span class="s">&quot;api-key:</span><span class="si">%s</span><span class="s">, region:</span><span class="si">%s</span><span class="s">, identity_type:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="Auth.authenticate_credentials"><a class="viewcode-back" href="../auth.html#auth.Auth.authenticate_credentials">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        authenticate with username and api-key</span>
+
+<span class="sd">        @identity_type    &#39;rackspace&#39;, &#39;openstack&#39;</span>
+<span class="sd">        @username</span>
+<span class="sd">        @apikey</span>
+<span class="sd">        @region            LON,SYD,DFW, etc</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;authenticating with credentials &#39;</span>
+                     <span class="s">&#39;(identity_type:</span><span class="si">%s</span><span class="s">, username:</span><span class="si">%s</span><span class="s">, api-key:</span><span class="si">%s</span><span class="s">, region=</span><span class="si">%s</span><span class="s">)&#39;</span>
+                     <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apikey</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_region</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pyrax</span><span class="o">.</span><span class="n">set_setting</span><span class="p">(</span><span class="s">&quot;identity_type&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span><span class="p">)</span>
+            <span class="n">pyrax</span><span class="o">.</span><span class="n">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apikey</span><span class="p">,</span>
+                                  <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_region</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;authenticated with credentials, username:</span><span class="si">%s</span><span class="s">, &quot;</span>
+                        <span class="s">&quot;api-key:</span><span class="si">%s</span><span class="s">, region:</span><span class="si">%s</span><span class="s">, identity_type:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user authenticated: </span><span class="si">%s</span><span class="s">&quot;</span>
+                         <span class="o">%</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span><span class="o">.</span><span class="n">authenticated</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span><span class="o">.</span><span class="n">authenticated</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_token</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span><span class="o">.</span><span class="n">auth_token</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span><span class="o">.</span><span class="n">tenant_id</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_token</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span><span class="o">.</span><span class="n">authenticated</span>
+        <span class="k">except</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">AuthenticationFailed</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;cannot authenticate with credentials&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="Auth.authenticate_token"><a class="viewcode-back" href="../auth.html#auth.Auth.authenticate_token">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        authenticate with Rackspace Cloud</span>
+<span class="sd">        using existing token</span>
+<span class="sd">        tenant_id: see top-right --&gt; tenant_id (#XXX)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="n">pyrax</span><span class="o">.</span><span class="n">set_setting</span><span class="p">(</span><span class="s">&#39;identity_type&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identity_type</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pyrax</span><span class="o">.</span><span class="n">auth_with_token</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;authenticated with token:</span><span class="si">%s</span><span class="s">, tenant_id:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;cannot authenticate with token:</span><span class="si">%s</span><span class="s">, tenant_id:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="Auth.force_unauthenticate"><a class="viewcode-back" href="../auth.html#auth.Auth.force_unauthenticate">[docs]</a>    <span class="k">def</span> <span class="nf">force_unauthenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Force logout, i.e. unauthenticate and delete token file</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c"># unauthenticate</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span><span class="o">.</span><span class="n">unauthenticate</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="c"># delete token file</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="Auth.load_token"><a class="viewcode-back" href="../auth.html#auth.Auth.load_token">[docs]</a>    <span class="k">def</span> <span class="nf">load_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        load token from file</span>
+
+<span class="sd">        Actually it loads &#39;token&#39; and &#39;tenant_id&#39; from token file.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;loaded data &#39;</span><span class="si">%s</span><span class="s">&#39; from file &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;cannot decode JSON data in token file&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;cannot read token data from file &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_token</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;token&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="Auth.save_token"><a class="viewcode-back" href="../auth.html#auth.Auth.save_token">[docs]</a>    <span class="k">def</span> <span class="nf">save_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        save token to file</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token</span><span class="p">,</span> <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tenant_id</span><span class="p">}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;cannot write data &#39;</span><span class="si">%s</span><span class="s">&#39; to file &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">False</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Simon Mirco, Simone Soldateschi, Suraj Thapa, Teddy Schmitz[D.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
