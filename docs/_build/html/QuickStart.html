@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quick Start &mdash; RAX-AutoScaler 0.2.16 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="RAX-AutoScaler 0.2.16 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to RAX-AutoScaler’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to RAX-AutoScaler’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pip install RAX-AutoScaler
+</pre></div>
+</div>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>Edit config.json adding the following:
+- API username
+- API key
+- Region name
+- Autoscaling group section should contain:</p>
+<blockquote>
+<div><ul class="simple">
+<li>AutoScale Group UUID</li>
+<li>Scale Up Policy UUID</li>
+<li>Scale Down Policy UUID</li>
+<li>Check Type (agent.cpu, agent.load_average...)</li>
+<li>Metric Name (depends on the check type)</li>
+<li>Scale Up Threshold</li>
+<li>Scale Down Threshold</li>
+<li>Webhooks Url (Pre &amp; Post commit url(s) for scale up/down)</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>Once configured you can invoke the autoscaler.py script.</p>
+<p>&#8211;cluster option should be used when this script actually runs on auto-scale group members. Otherwise if it is running on a dedicated management instance you do not require this option.</p>
+<p>&#8211;as-group option should be used when you have multiple groups listed in the config.json file.</p>
+<p>&#8211;config-file option should be used if config.json file does not exists in current directory or in &#8216;/etc/rax-autoscaler&#8217; path.</p>
+<p>Once tested you should configure this script to run as a cron job either on a management instance or on all cluster members</p>
+</div>
+<div class="section" id="cloud-init">
+<h2>Cloud Init<a class="headerlink" href="#cloud-init" title="Permalink to this headline">¶</a></h2>
+<p>You can use the cloud-config file to auto-install RAX-Autoscaler on new servers.  For example to do so on Rackspace cloud using supernova</p>
+<blockquote>
+<div><em>supernova &lt;region&gt; boot &#8211;user-data ./cloud-config &#8211;image &lt;image id/name&gt; &#8211;flavor &lt;flavor id/name&gt; &#8211;config-drive=true &lt;server name&gt;</em></div></blockquote>
+<p>To use this with autoscale you would want to set the userdata of your launch configuration to the base64 encoded string of the file:</p>
+<div class="highlight-json"><div class="highlight"><pre>&quot;launchConfiguration&quot;: {
+      &quot;args&quot;: {
+          &quot;server&quot;: {
+              &quot;config_drive&quot; : true,
+              &quot;flavorRef&quot;: &quot;general1-1&quot;,
+              &quot;imageRef&quot;: &quot;CentOS 6.5 (PVHVM)&quot;,
+              &quot;key_name&quot; : &quot;MY_SSH_KEY&quot;,
+              &quot;user_data&quot; : &quot;I2Nsb3VkLWNvbmZpZwoKcGFja2FnZXM6CiAgLSBweXRob24tcGlwCgpydW5jbWQ6CiAgLSBbIHBpcCwgaW5zdGFsbCwgUkFYLUF1dG9TY2FsZXIgXQo=&quot;,
+              &quot;name&quot;: &quot;test-autoscale&quot;
+          }
+      },
+      &quot;type&quot;: &quot;launch_server&quot;
+  }
+</pre></div>
+</div>
+<p>This has been tested on these images:</p>
+<ul class="simple">
+<li>Ubuntu 14.04 LTS (PVHVM)</li>
+<li>CentOS 6.5 (PVHVM)</li>
+</ul>
+<p>In the example the value of user_data contains the base64 encoded version of the following script:</p>
+<div class="highlight-python"><div class="highlight"><pre>echo -n &quot;I2Nsb3VkLWNvbmZpZwoKcGFja2FnZXM6CiAgLSBweXRob24tcGlwCgpydW5jbWQ6CiAgLSBbIHBpcCwgaW5zdGFsbCwgUkFYLUF1dG9TY2FsZXIgXQo=&quot; | base64 -D
+</pre></div>
+</div>
+<p>To base64 encode a script</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cat</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">USER_DATA</span> <span class="o">|</span> <span class="n">base64</span>
+</pre></div>
+</div>
+<p>Size of USER_DATA can be reduced with gzip:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cat</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">USER_DATA</span> <span class="o">|</span> <span class="n">gzip</span> <span class="o">|</span> <span class="n">base64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="note">
+<h2>Note<a class="headerlink" href="#note" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>RAX-AutoScaler depends on Rackspace Monitoring Agent to get the data from nodes in scaling group.</p>
+<p>If the agent is not installed please read: Install the Cloud Monitoring Agent: <a class="reference external" href="http://www.rackspace.com/knowledge_center/article/install-the-cloud-monitoring-agent">http://www.rackspace.com/knowledge_center/article/install-the-cloud-monitoring-agent</a></p>
+</div></blockquote>
+</div>
+<div class="section" id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Fork it</li>
+<li>Create your feature branch (git checkout -b my-new-feature)</li>
+<li>Commit your changes (git commit -am &#8216;Add some feature&#8217;)</li>
+<li>Push to the branch (git push origin my-new-feature)</li>
+<li>Create new Pull Request</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Quick Start</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#cloud-init">Cloud Init</a></li>
+<li><a class="reference internal" href="#note">Note</a></li>
+<li><a class="reference internal" href="#contributing">Contributing</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to RAX-AutoScaler&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/QuickStart.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to RAX-AutoScaler’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Simon Mirco, Simone Soldateschi, Suraj Thapa, Teddy Schmitz[D.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
