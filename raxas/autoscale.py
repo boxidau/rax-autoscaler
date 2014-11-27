@@ -87,7 +87,45 @@ def is_node_master(scalingGroup):
 
     """
     masters = []
-    node_id = common.get_machine_uuid()
+    systemUUID = None
+    systemUUID_file = None
+    node_id = None
+    try:
+        sysout = subprocess.Popen(['dmidecode', '-s', 'system-uuid'],
+                                  stdout=subprocess.PIPE)
+        systemUUID = sysout.communicate()[0]
+        systemUUID = systemUUID.strip()
+    except:
+        pass
+
+    if systemUUID is not None:
+        systemUUID_file = common.check_file(systemUUID)
+        if systemUUID_file is not None:
+            try:
+                rfh = open(systemUUID_file, 'r').read()
+                node_id = rfh.strip()
+                logger.info("Using machine uuid available in '%s'"
+                            % systemUUID_file)
+            except:
+                logger.warning("Unable to read a file '%s' in '%s'"
+                               % (systemUUID, '/etc/rax-autoscaler'))
+                pass
+
+    if node_id is None:
+        logger.info('Launching xenstore query to get machine uuid')
+        node_id = common.get_machine_uuid()
+
+        if systemUUID_file is None and systemUUID is not None:
+            try:
+                newFile = '/etc/rax-autoscaler/' + systemUUID
+                wfh = open(newFile, 'w')
+                wfh.write(node_id)
+                wfh.close()
+            except:
+                logger.warning("Unable to create a file '%s' in '%s'"
+                               % (systemUUID, '/etc/rax-autoscaler'))
+                pass
+
     sg_state = scalingGroup.get_state()
     if len(sg_state['active']) == 1:
         masters.append(sg_state['active'][0])
@@ -327,7 +365,8 @@ def main():
             as_group = config_data['autoscale_groups'].keys()[0]
         else:
             try:
-                hostname = subprocess.check_output(['hostname'])
+                sysout = subprocess.Popen(['hostname'], stdout=subprocess.PIPE)
+                hostname = sysout.communicate()[0]
                 hostname = (hostname.strip()).rsplit('-', 1)[0]
                 group_value = config_data["autoscale_groups"][hostname]
                 as_group = hostname
