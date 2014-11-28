@@ -33,6 +33,11 @@ import logging
 
 
 def get_logger():
+    """This function instantiate the logger.
+
+    :return: logger
+
+    """
     logger = logging.getLogger(__name__)
     return logger
 

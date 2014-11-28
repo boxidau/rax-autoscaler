@@ -50,48 +50,88 @@
 <dl class="function">
 <dt id="cloudmonitor.add_cm_check">
 <tt class="descclassname">cloudmonitor.</tt><tt class="descname">add_cm_check</tt><big>(</big><em>server_id</em>, <em>check_type</em>, <em>check_config</em><big>)</big><a class="reference internal" href="_modules/cloudmonitor.html#add_cm_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cloudmonitor.add_cm_check" title="Permalink to this definition">¶</a></dt>
-<dd><p>add Cloud Monitoring cpu check to server, if it is not already present</p>
+<dd><p>This function adds Cloud Monitoring cpu check to a server, if it is not already present</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>server_id</strong> &#8211; server identity</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">int &#8211; the return code
+1 &#8211; Success</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="cloudmonitor.get_entity">
 <tt class="descclassname">cloudmonitor.</tt><tt class="descname">get_entity</tt><big>(</big><em>agent_id</em><big>)</big><a class="reference internal" href="_modules/cloudmonitor.html#get_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cloudmonitor.get_entity" title="Permalink to this definition">¶</a></dt>
-<dd><p>get entity for passed agent_id (agent_id := server_uuid)</p>
+<dd><p>This function get entity for passed agent_id (agent_id := server_uuid)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>agent_id</strong> &#8211; agent id</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="cloudmonitor.get_server">
 <tt class="descclassname">cloudmonitor.</tt><tt class="descname">get_server</tt><big>(</big><em>server_id</em><big>)</big><a class="reference internal" href="_modules/cloudmonitor.html#get_server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cloudmonitor.get_server" title="Permalink to this definition">¶</a></dt>
-<dd><p>get Cloud server object by server_id</p>
+<dd><p>It gets Cloud server object by server_id</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="cloudmonitor.get_server_ipv4">
 <tt class="descclassname">cloudmonitor.</tt><tt class="descname">get_server_ipv4</tt><big>(</big><em>server_id</em>, <em>_type='public'</em><big>)</big><a class="reference internal" href="_modules/cloudmonitor.html#get_server_ipv4"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cloudmonitor.get_server_ipv4" title="Permalink to this definition">¶</a></dt>
-<dd><p>get public IP v4 server address</p>
-<p>&#64;param server_id    server id
-&#64;param _type        IP v4 type: public (default), private,
-or custom network
-&#64;return public IP v4 of server</p>
+<dd><p>It gets public IP v4 server address</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>server_id</strong> &#8211; server id</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="cloudmonitor.get_server_name">
 <tt class="descclassname">cloudmonitor.</tt><tt class="descname">get_server_name</tt><big>(</big><em>server_id</em><big>)</big><a class="reference internal" href="_modules/cloudmonitor.html#get_server_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cloudmonitor.get_server_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>return the name of server, using cached values</p>
+<dd><p>It returns the name of a server, using cached values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>server_id</strong> &#8211; server id</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">d_cached_servers_name[server_id] (str)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="cloudmonitor.is_ipv4">
 <tt class="descclassname">cloudmonitor.</tt><tt class="descname">is_ipv4</tt><big>(</big><em>address</em><big>)</big><a class="reference internal" href="_modules/cloudmonitor.html#is_ipv4"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cloudmonitor.is_ipv4" title="Permalink to this definition">¶</a></dt>
-<dd><p>check if address is valid IP v4</p>
+<dd><p>It checks if address is valid IP v4</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="cloudmonitor.scaling_group_servers">
 <tt class="descclassname">cloudmonitor.</tt><tt class="descname">scaling_group_servers</tt><big>(</big><em>sgid</em><big>)</big><a class="reference internal" href="_modules/cloudmonitor.html#scaling_group_servers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cloudmonitor.scaling_group_servers" title="Permalink to this definition">¶</a></dt>
 <dd><p>list servers&#8217; id in scaling group sgid</p>
-<p>&#64;param sgid    scaling group id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sgid</strong> &#8211; scaling group id</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
