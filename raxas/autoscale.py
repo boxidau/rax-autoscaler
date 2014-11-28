@@ -366,8 +366,10 @@ def main():
         else:
             try:
                 sysout = subprocess.Popen(['hostname'], stdout=subprocess.PIPE)
-                hostname = sysout.communicate()[0]
-                hostname = (hostname.strip()).rsplit('-', 1)[0]
+                hostname = (sysout.communicate()[0]).strip()
+                if '-' in hostname:
+                    hostname = hostname.rsplit('-', 1)[0]
+
                 group_value = config_data["autoscale_groups"][hostname]
                 as_group = hostname
             except:
