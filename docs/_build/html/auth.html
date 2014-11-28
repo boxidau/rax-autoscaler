@@ -50,57 +50,111 @@
 <dl class="class">
 <dt id="auth.Auth">
 <em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">Auth</tt><big>(</big><em>username</em>, <em>apikey</em>, <em>region</em>, <em>identity_type='rackspace'</em>, <em>token_filename='/Users/sura8257/.rax-autoscaler-token'</em><big>)</big><a class="reference internal" href="_modules/auth.html#Auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth" title="Permalink to this definition">¶</a></dt>
-<dd><p>class which implements Rackspace Authentication</p>
+<dd><p>This class implements Rackspace cloud account authentication</p>
 <dl class="method">
 <dt id="auth.Auth.authenticate">
 <tt class="descname">authenticate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.authenticate" title="Permalink to this definition">¶</a></dt>
-<dd><p>authentication facility, tries to load a token from file,
-authenticate with it, and if it fails then tries to authenticate</p>
-<blockquote>
-<div>with credentials</div></blockquote>
+<dd><p>This method loads a token from a file,
+authenticate with it, and if it fails then tries to authenticate
+with credentials</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True or False (Boolean)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.Auth.authenticate_credentials">
 <tt class="descname">authenticate_credentials</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.authenticate_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.authenticate_credentials" title="Permalink to this definition">¶</a></dt>
-<dd><p>authenticate with username and api-key</p>
-<p>&#64;identity_type    &#8216;rackspace&#8217;, &#8216;openstack&#8217;
-&#64;username
-&#64;apikey
-&#64;region            LON,SYD,DFW, etc</p>
+<dd><p>This method try to authenticate with available credentials</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True or False (Boolean)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.Auth.authenticate_token">
 <tt class="descname">authenticate_token</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.authenticate_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.authenticate_token" title="Permalink to this definition">¶</a></dt>
-<dd><p>authenticate with Rackspace Cloud
-using existing token
-tenant_id: see top-right &#8211;&gt; tenant_id (#XXX)</p>
+<dd><p>This authenticate with Rackspace cloud using existing token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True or False (Boolean)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.Auth.force_unauthenticate">
 <tt class="descname">force_unauthenticate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.force_unauthenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.force_unauthenticate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Force logout, i.e. unauthenticate and delete token file</p>
+<dd><p>This unauthenticate and delete token file</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.Auth.load_token">
 <tt class="descname">load_token</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.load_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.load_token" title="Permalink to this definition">¶</a></dt>
-<dd><p>load token from file</p>
-<p>Actually it loads &#8216;token&#8217; and &#8216;tenant_id&#8217; from token file.</p>
+<dd><p>This loads token from a file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True or False (Boolean)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.Auth.save_token">
 <tt class="descname">save_token</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.save_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.save_token" title="Permalink to this definition">¶</a></dt>
-<dd><p>save token to file</p>
+<dd><p>This saves token to a file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True or False (Boolean)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.Auth.status">
 <tt class="descname">status</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.status" title="Permalink to this definition">¶</a></dt>
-<dd><p>similar to __str__, but queries pyrax for values</p>
+<dd><p>This queries pyrax for values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list &#8211; the return value</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="auth.Auth.token_filename">
+<tt class="descname">token_filename</tt><a class="reference internal" href="_modules/auth.html#Auth.token_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.token_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>This returns token filename</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">_token_filename</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

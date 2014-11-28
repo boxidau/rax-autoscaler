@@ -28,9 +28,13 @@ check_name = 'raxas'
 
 
 def add_cm_check(server_id, check_type, check_config):
-    '''
-    add Cloud Monitoring cpu check to server, if it is not already present
-    '''
+    """This function adds Cloud Monitoring cpu check to a server, if it is not already present
+
+    :param server_id: server identity
+    :type name: str
+    :returns: int -- the return code
+                1 -- Success
+    """
     logger = logging.getLogger(__name__)
     global check_name
     try:
@@ -66,9 +70,12 @@ def add_cm_check(server_id, check_type, check_config):
 
 
 def get_entity(agent_id):
-    '''
-    get entity for passed agent_id (agent_id := server_uuid)
-    '''
+    """This function get entity for passed agent_id (agent_id := server_uuid)
+
+    :param agent_id: agent id
+    :type name: str
+    
+    """
     cm = pyrax.cloud_monitoring
     try:
         return filter(lambda e: e.agent_id == agent_id,
@@ -79,9 +86,9 @@ def get_entity(agent_id):
 
 
 def get_server(server_id):
-    '''
-    get Cloud server object by server_id
-    '''
+    """ It gets Cloud server object by server_id
+
+    """
     cs = pyrax.cloudservers
     try:
         return filter(lambda s: s.id == server_id, [s for s in cs.list()])[0]
@@ -91,13 +98,20 @@ def get_server(server_id):
 
 
 def get_server_name(server_id):
-    '''
-    return the name of server, using cached values
-    '''
+    """It returns the name of a server, using cached values
+
+    :param server_id: server id
+    :type name: str
+    :returns: d_cached_servers_name[server_id] (str) 
+    
+    """
     global d_cached_servers_name
+    
     try:
         # try returning name from cache
+    
         return d_cached_servers_name[server_id]
+    
     except KeyError:
         # ask Rackspace API
         server = get_server(server_id)
@@ -109,11 +123,12 @@ def get_server_name(server_id):
 
 
 def scaling_group_servers(sgid):
-    '''
-    list servers' id in scaling group sgid
+    """ list servers' id in scaling group sgid
+    
+    :param sgid: scaling group id
+    :type name: str
 
-    @param sgid    scaling group id
-    '''
+    """
     a = pyrax.autoscale
     try:
         sg = a.get(sgid)
@@ -124,14 +139,12 @@ def scaling_group_servers(sgid):
 
 
 def get_server_ipv4(server_id, _type='public'):
-    '''
-    get public IP v4 server address
+    """ It gets public IP v4 server address
 
-    @param server_id    server id
-    @param _type        IP v4 type: public (default), private,
-    or custom network
-    @return public IP v4 of server
-    '''
+    :param server_id: server id
+    :type name: str
+
+    """
     server = get_server(server_id)
     if server is None:
         return None
@@ -144,9 +157,9 @@ def get_server_ipv4(server_id, _type='public'):
 
 
 def is_ipv4(address):
-    '''
-    check if address is valid IP v4
-    '''
+    """It checks if address is valid IP v4
+
+    """
     import socket
     try:
         socket.inet_aton(address)

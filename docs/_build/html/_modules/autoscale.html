@@ -137,7 +137,45 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">masters</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">node_id</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">get_machine_uuid</span><span class="p">()</span>
+    <span class="n">systemUUID</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">systemUUID_file</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">node_id</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sysout</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s">&#39;dmidecode&#39;</span><span class="p">,</span> <span class="s">&#39;-s&#39;</span><span class="p">,</span> <span class="s">&#39;system-uuid&#39;</span><span class="p">],</span>
+                                  <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+        <span class="n">systemUUID</span> <span class="o">=</span> <span class="n">sysout</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">systemUUID</span> <span class="o">=</span> <span class="n">systemUUID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">systemUUID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">systemUUID_file</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">check_file</span><span class="p">(</span><span class="n">systemUUID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">systemUUID_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rfh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">systemUUID_file</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="n">node_id</span> <span class="o">=</span> <span class="n">rfh</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Using machine uuid available in &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span>
+                            <span class="o">%</span> <span class="n">systemUUID_file</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Unable to read a file &#39;</span><span class="si">%s</span><span class="s">&#39; in &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span>
+                               <span class="o">%</span> <span class="p">(</span><span class="n">systemUUID</span><span class="p">,</span> <span class="s">&#39;/etc/rax-autoscaler&#39;</span><span class="p">))</span>
+                <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Launching xenstore query to get machine uuid&#39;</span><span class="p">)</span>
+        <span class="n">node_id</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">get_machine_uuid</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">systemUUID_file</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">systemUUID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">newFile</span> <span class="o">=</span> <span class="s">&#39;/etc/rax-autoscaler/&#39;</span> <span class="o">+</span> <span class="n">systemUUID</span>
+                <span class="n">wfh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">newFile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+                <span class="n">wfh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
+                <span class="n">wfh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Unable to create a file &#39;</span><span class="si">%s</span><span class="s">&#39; in &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span>
+                               <span class="o">%</span> <span class="p">(</span><span class="n">systemUUID</span><span class="p">,</span> <span class="s">&#39;/etc/rax-autoscaler&#39;</span><span class="p">))</span>
+                <span class="k">pass</span>
+
     <span class="n">sg_state</span> <span class="o">=</span> <span class="n">scalingGroup</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sg_state</span><span class="p">[</span><span class="s">&#39;active&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">masters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sg_state</span><span class="p">[</span><span class="s">&#39;active&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
@@ -377,7 +415,8 @@
             <span class="n">as_group</span> <span class="o">=</span> <span class="n">config_data</span><span class="p">[</span><span class="s">&#39;autoscale_groups&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">hostname</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s">&#39;hostname&#39;</span><span class="p">])</span>
+                <span class="n">sysout</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s">&#39;hostname&#39;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+                <span class="n">hostname</span> <span class="o">=</span> <span class="n">sysout</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">hostname</span> <span class="o">=</span> <span class="p">(</span><span class="n">hostname</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">group_value</span> <span class="o">=</span> <span class="n">config_data</span><span class="p">[</span><span class="s">&quot;autoscale_groups&quot;</span><span class="p">][</span><span class="n">hostname</span><span class="p">]</span>
                 <span class="n">as_group</span> <span class="o">=</span> <span class="n">hostname</span>

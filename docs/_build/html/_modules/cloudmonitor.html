@@ -78,9 +78,13 @@
 
 
 <div class="viewcode-block" id="add_cm_check"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.add_cm_check">[docs]</a><span class="k">def</span> <span class="nf">add_cm_check</span><span class="p">(</span><span class="n">server_id</span><span class="p">,</span> <span class="n">check_type</span><span class="p">,</span> <span class="n">check_config</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    add Cloud Monitoring cpu check to server, if it is not already present</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;This function adds Cloud Monitoring cpu check to a server, if it is not already present</span>
+
+<span class="sd">    :param server_id: server identity</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :returns: int -- the return code</span>
+<span class="sd">                1 -- Success</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
     <span class="k">global</span> <span class="n">check_name</span>
     <span class="k">try</span><span class="p">:</span>
@@ -116,9 +120,12 @@
 
 </div>
 <div class="viewcode-block" id="get_entity"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.get_entity">[docs]</a><span class="k">def</span> <span class="nf">get_entity</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    get entity for passed agent_id (agent_id := server_uuid)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;This function get entity for passed agent_id (agent_id := server_uuid)</span>
+
+<span class="sd">    :param agent_id: agent id</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cm</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">cloud_monitoring</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">agent_id</span> <span class="o">==</span> <span class="n">agent_id</span><span class="p">,</span>
@@ -129,9 +136,9 @@
 
 </div>
 <div class="viewcode-block" id="get_server"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.get_server">[docs]</a><span class="k">def</span> <span class="nf">get_server</span><span class="p">(</span><span class="n">server_id</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    get Cloud server object by server_id</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot; It gets Cloud server object by server_id</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cs</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">cloudservers</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">server_id</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">cs</span><span class="o">.</span><span class="n">list</span><span class="p">()])[</span><span class="mi">0</span><span class="p">]</span>
@@ -141,13 +148,20 @@
 
 </div>
 <div class="viewcode-block" id="get_server_name"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.get_server_name">[docs]</a><span class="k">def</span> <span class="nf">get_server_name</span><span class="p">(</span><span class="n">server_id</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    return the name of server, using cached values</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;It returns the name of a server, using cached values</span>
+
+<span class="sd">    :param server_id: server id</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :returns: d_cached_servers_name[server_id] (str) </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">d_cached_servers_name</span>
+    
     <span class="k">try</span><span class="p">:</span>
         <span class="c"># try returning name from cache</span>
+    
         <span class="k">return</span> <span class="n">d_cached_servers_name</span><span class="p">[</span><span class="n">server_id</span><span class="p">]</span>
+    
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
         <span class="c"># ask Rackspace API</span>
         <span class="n">server</span> <span class="o">=</span> <span class="n">get_server</span><span class="p">(</span><span class="n">server_id</span><span class="p">)</span>
@@ -159,11 +173,12 @@
 
 </div>
 <div class="viewcode-block" id="scaling_group_servers"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.scaling_group_servers">[docs]</a><span class="k">def</span> <span class="nf">scaling_group_servers</span><span class="p">(</span><span class="n">sgid</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    list servers&#39; id in scaling group sgid</span>
+    <span class="sd">&quot;&quot;&quot; list servers&#39; id in scaling group sgid</span>
+<span class="sd">    </span>
+<span class="sd">    :param sgid: scaling group id</span>
+<span class="sd">    :type name: str</span>
 
-<span class="sd">    @param sgid    scaling group id</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">autoscale</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">sg</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sgid</span><span class="p">)</span>
@@ -174,14 +189,12 @@
 
 </div>
 <div class="viewcode-block" id="get_server_ipv4"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.get_server_ipv4">[docs]</a><span class="k">def</span> <span class="nf">get_server_ipv4</span><span class="p">(</span><span class="n">server_id</span><span class="p">,</span> <span class="n">_type</span><span class="o">=</span><span class="s">&#39;public&#39;</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    get public IP v4 server address</span>
+    <span class="sd">&quot;&quot;&quot; It gets public IP v4 server address</span>
 
-<span class="sd">    @param server_id    server id</span>
-<span class="sd">    @param _type        IP v4 type: public (default), private,</span>
-<span class="sd">    or custom network</span>
-<span class="sd">    @return public IP v4 of server</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    :param server_id: server id</span>
+<span class="sd">    :type name: str</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">get_server</span><span class="p">(</span><span class="n">server_id</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">server</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
@@ -194,9 +207,9 @@
 
 </div>
 <div class="viewcode-block" id="is_ipv4"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.is_ipv4">[docs]</a><span class="k">def</span> <span class="nf">is_ipv4</span><span class="p">(</span><span class="n">address</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    check if address is valid IP v4</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;It checks if address is valid IP v4</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">socket</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">socket</span><span class="o">.</span><span class="n">inet_aton</span><span class="p">(</span><span class="n">address</span><span class="p">)</span>
