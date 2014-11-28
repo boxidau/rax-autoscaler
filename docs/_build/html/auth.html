@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>auth &mdash; RAX-AutoScaler 0.2.16 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="RAX-AutoScaler 0.2.16 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-auth">
+<span id="auth"></span><h1>auth<a class="headerlink" href="#module-auth" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="auth.Auth">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">Auth</tt><big>(</big><em>username</em>, <em>apikey</em>, <em>region</em>, <em>identity_type='rackspace'</em>, <em>token_filename='/Users/sura8257/.rax-autoscaler-token'</em><big>)</big><a class="reference internal" href="_modules/auth.html#Auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>class which implements Rackspace Authentication</p>
+<dl class="method">
+<dt id="auth.Auth.authenticate">
+<tt class="descname">authenticate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.authenticate" title="Permalink to this definition">¶</a></dt>
+<dd><p>authentication facility, tries to load a token from file,
+authenticate with it, and if it fails then tries to authenticate</p>
+<blockquote>
+<div>with credentials</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.Auth.authenticate_credentials">
+<tt class="descname">authenticate_credentials</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.authenticate_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.authenticate_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>authenticate with username and api-key</p>
+<p>&#64;identity_type    &#8216;rackspace&#8217;, &#8216;openstack&#8217;
+&#64;username
+&#64;apikey
+&#64;region            LON,SYD,DFW, etc</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.Auth.authenticate_token">
+<tt class="descname">authenticate_token</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.authenticate_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.authenticate_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>authenticate with Rackspace Cloud
+using existing token
+tenant_id: see top-right &#8211;&gt; tenant_id (#XXX)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.Auth.force_unauthenticate">
+<tt class="descname">force_unauthenticate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.force_unauthenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.force_unauthenticate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force logout, i.e. unauthenticate and delete token file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.Auth.load_token">
+<tt class="descname">load_token</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.load_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.load_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>load token from file</p>
+<p>Actually it loads &#8216;token&#8217; and &#8216;tenant_id&#8217; from token file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.Auth.save_token">
+<tt class="descname">save_token</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.save_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.save_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>save token to file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.Auth.status">
+<tt class="descname">status</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/auth.html#Auth.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.Auth.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>similar to __str__, but queries pyrax for values</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/auth.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">RAX-AutoScaler 0.2.16 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Simon Mirco, Simone Soldateschi, Suraj Thapa, Teddy Schmitz[D.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

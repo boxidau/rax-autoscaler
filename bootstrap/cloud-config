@@ -16,7 +16,7 @@ write_files:
    - path: /etc/cron.d/autoscaler
      owner: root:root
      content: |
-          * * * * * root autoscale --as-group group0 --cluster >/tmp/autoscale.log 2>&1
+          * * * * * root autoscale --cluster >/tmp/autoscale.log 2>&1
     
    - path: /etc/rax-autoscaler/config.json
      owner: root:root

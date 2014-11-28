@@ -32,11 +32,13 @@ Edit config.json adding the following:
   - Webhooks Url (Pre & Post commit url(s) for scale up/down)
 
 ## Usage
-Once configured you can invoke the autoscaler.py script with the following required argument ```--as-group```:
+Once configured you can invoke the autoscaler.py script.
 
-- ```--as-group``` must refer to a section in the config.json file
+--cluster option should be used when this script actually runs on auto-scale group members. Otherwise if it is running on a dedicated management instance you do not require this option.
 
-You can also invoke the script with the --cluster option this should be used when this script actually runs on auto-scale group members. Otherwise if it is running on a dedicated management instance you do not require this option.
+--as-group option should be used when you have multiple groups listed in the config.json file.
+
+--config-file option should be used if config.json file does not exists in current directory or in '/etc/rax-autoscaler' path. 
 
 Once tested you should configure this script to run as a cron job either on a management instance or on all cluster members
 
