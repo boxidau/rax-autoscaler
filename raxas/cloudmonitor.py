@@ -28,7 +28,8 @@ check_name = 'raxas'
 
 
 def add_cm_check(server_id, check_type, check_config):
-    """This function adds Cloud Monitoring cpu check to a server, if it is not already present
+    """This function adds Cloud Monitoring cpu check to a server,
+       if it is not already present
 
     :param server_id: server identity
     :type name: str
@@ -74,7 +75,7 @@ def get_entity(agent_id):
 
     :param agent_id: agent id
     :type name: str
-    
+
     """
     cm = pyrax.cloud_monitoring
     try:
@@ -102,16 +103,16 @@ def get_server_name(server_id):
 
     :param server_id: server id
     :type name: str
-    :returns: d_cached_servers_name[server_id] (str) 
-    
+    :returns: d_cached_servers_name[server_id] (str)
+
     """
     global d_cached_servers_name
-    
+
     try:
         # try returning name from cache
-    
+
         return d_cached_servers_name[server_id]
-    
+
     except KeyError:
         # ask Rackspace API
         server = get_server(server_id)
@@ -124,7 +125,7 @@ def get_server_name(server_id):
 
 def scaling_group_servers(sgid):
     """ list servers' id in scaling group sgid
-    
+
     :param sgid: scaling group id
     :type name: str
 
