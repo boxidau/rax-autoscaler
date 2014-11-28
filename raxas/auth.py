@@ -28,7 +28,7 @@ import traceback
 
 class Auth(object):
     '''This class implements Rackspace cloud account authentication
-    
+
     '''
 
     def __init__(self, username, apikey, region,
@@ -36,11 +36,11 @@ class Auth(object):
                  token_filename=os.path.expanduser('~/.rax-autoscaler-token')):
         """This method initialize the Auth class
 
-        :param username: account user name 
+        :param username: account user name
         :type name: str
         :param apikey: account api key
         :type name: str
-        :param region: location   
+        :param region: location
         :type name: str
 
         """
@@ -56,7 +56,7 @@ class Auth(object):
 
     def __str__(self, *args, **kwargs):
         """This is use for generating logger debug message
-        
+
         """
         return ("username: %s, apikey: %s, identity_type: %s, "
                 "region: %s, token_filename: %s, token: %s, "
@@ -67,9 +67,9 @@ class Auth(object):
 
     def status(self):
         """ This queries pyrax for values
-            
+
             :returns: list -- the return value
-        """ 
+        """
         pi = pyrax.identity
         return ("pyrax reports -- "
                 "username: %s, apikey: %s, region: %s, token: %s, "
@@ -79,7 +79,7 @@ class Auth(object):
     @property
     def token_filename(self):
         """ This returns token filename
-            
+
             :returns: _token_filename
         """
         return self._token_filename
@@ -88,7 +88,7 @@ class Auth(object):
         """ This method loads a token from a file,
             authenticate with it, and if it fails then tries to authenticate
             with credentials
-        
+
             :returns: True or False (Boolean)
         """
         logger = logging.getLogger(__name__)
@@ -124,7 +124,7 @@ class Auth(object):
         """This method try to authenticate with available credentials
 
         :returns: True or False (Boolean)
-        """ 
+        """
         logger = logging.getLogger(__name__)
         logger.debug('authenticating with credentials '
                      '(identity_type:%s, username:%s, api-key:%s, region=%s)'
@@ -151,7 +151,7 @@ class Auth(object):
 
     def authenticate_token(self):
         """This authenticate with Rackspace cloud using existing token.
-        
+
         :returns: True or False (Boolean)
         """
         logger = logging.getLogger(__name__)
@@ -214,7 +214,7 @@ class Auth(object):
 
     def save_token(self):
         """This saves token to a file
-        
+
         :returns: True or False (Boolean)
         """
         logger = logging.getLogger(__name__)
