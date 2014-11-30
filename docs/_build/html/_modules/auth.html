@@ -78,7 +78,7 @@
 
 <div class="viewcode-block" id="Auth"><a class="viewcode-back" href="../auth.html#auth.Auth">[docs]</a><span class="k">class</span> <span class="nc">Auth</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;This class implements Rackspace cloud account authentication</span>
-<span class="sd">    </span>
+
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span>
@@ -86,11 +86,11 @@
                  <span class="n">token_filename</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/.rax-autoscaler-token&#39;</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;This method initialize the Auth class</span>
 
-<span class="sd">        :param username: account user name </span>
+<span class="sd">        :param username: account user name</span>
 <span class="sd">        :type name: str</span>
 <span class="sd">        :param apikey: account api key</span>
 <span class="sd">        :type name: str</span>
-<span class="sd">        :param region: location   </span>
+<span class="sd">        :param region: location</span>
 <span class="sd">        :type name: str</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -106,7 +106,7 @@
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This is use for generating logger debug message</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s">&quot;username: </span><span class="si">%s</span><span class="s">, apikey: </span><span class="si">%s</span><span class="s">, identity_type: </span><span class="si">%s</span><span class="s">, &quot;</span>
                 <span class="s">&quot;region: </span><span class="si">%s</span><span class="s">, token_filename: </span><span class="si">%s</span><span class="s">, token: </span><span class="si">%s</span><span class="s">, &quot;</span>
@@ -117,9 +117,9 @@
 
 <div class="viewcode-block" id="Auth.status"><a class="viewcode-back" href="../auth.html#auth.Auth.status">[docs]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This queries pyrax for values</span>
-<span class="sd">            </span>
+
 <span class="sd">            :returns: list -- the return value</span>
-<span class="sd">        &quot;&quot;&quot;</span> 
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pi</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">identity</span>
         <span class="k">return</span> <span class="p">(</span><span class="s">&quot;pyrax reports -- &quot;</span>
                 <span class="s">&quot;username: </span><span class="si">%s</span><span class="s">, apikey: </span><span class="si">%s</span><span class="s">, region: </span><span class="si">%s</span><span class="s">, token: </span><span class="si">%s</span><span class="s">, &quot;</span>
@@ -129,7 +129,7 @@
     <span class="nd">@property</span>
 <div class="viewcode-block" id="Auth.token_filename"><a class="viewcode-back" href="../auth.html#auth.Auth.token_filename">[docs]</a>    <span class="k">def</span> <span class="nf">token_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This returns token filename</span>
-<span class="sd">            </span>
+
 <span class="sd">            :returns: _token_filename</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_filename</span>
@@ -138,7 +138,7 @@
         <span class="sd">&quot;&quot;&quot; This method loads a token from a file,</span>
 <span class="sd">            authenticate with it, and if it fails then tries to authenticate</span>
 <span class="sd">            with credentials</span>
-<span class="sd">        </span>
+
 <span class="sd">            :returns: True or False (Boolean)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
@@ -174,7 +174,7 @@
         <span class="sd">&quot;&quot;&quot;This method try to authenticate with available credentials</span>
 
 <span class="sd">        :returns: True or False (Boolean)</span>
-<span class="sd">        &quot;&quot;&quot;</span> 
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;authenticating with credentials &#39;</span>
                      <span class="s">&#39;(identity_type:</span><span class="si">%s</span><span class="s">, username:</span><span class="si">%s</span><span class="s">, api-key:</span><span class="si">%s</span><span class="s">, region=</span><span class="si">%s</span><span class="s">)&#39;</span>
@@ -201,7 +201,7 @@
 </div>
 <div class="viewcode-block" id="Auth.authenticate_token"><a class="viewcode-back" href="../auth.html#auth.Auth.authenticate_token">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This authenticate with Rackspace cloud using existing token.</span>
-<span class="sd">        </span>
+
 <span class="sd">        :returns: True or False (Boolean)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
@@ -264,7 +264,7 @@
 </div>
 <div class="viewcode-block" id="Auth.save_token"><a class="viewcode-back" href="../auth.html#auth.Auth.save_token">[docs]</a>    <span class="k">def</span> <span class="nf">save_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This saves token to a file</span>
-<span class="sd">        </span>
+
 <span class="sd">        :returns: True or False (Boolean)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>

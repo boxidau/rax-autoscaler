@@ -20,6 +20,7 @@ Contents:
    :maxdepth: 2
   
    QuickStart
+   Sphinx
 
 
 Indices and tables
