@@ -90,17 +90,21 @@ def is_node_master(scalingGroup):
     systemUUID = None
     systemUUID_file = None
     node_id = None
+    logger.debug('executing dmidecode to get system uuid')
     try:
         sysout = subprocess.Popen(['dmidecode', '-s', 'system-uuid'],
                                   stdout=subprocess.PIPE)
         systemUUID = sysout.communicate()[0]
         systemUUID = systemUUID.strip()
     except:
+        logger.debug('Failed to execute dmidecode to get system uuid')
         pass
 
     if systemUUID is not None:
+        logger.debug("Checking if file '%s' exists " % systemUUID)
         systemUUID_file = common.check_file(systemUUID)
         if systemUUID_file is not None:
+            logger.debug("Reading file '%s' to get node id" % systemUUID_file)
             try:
                 rfh = open(systemUUID_file, 'r').read()
                 node_id = rfh.strip()
@@ -116,6 +120,7 @@ def is_node_master(scalingGroup):
         node_id = common.get_machine_uuid()
 
         if systemUUID_file is None and systemUUID is not None:
+            logger.debug("Creating file '%s' to save node id" % systemUUID_file)
             try:
                 newFile = '/etc/rax-autoscaler/' + systemUUID
                 wfh = open(newFile, 'w')
