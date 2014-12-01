@@ -32,7 +32,7 @@ upload: source
 #	nosetests
 
 check:
-	find . -name \*.py | grep -v 'docs/conf.py' | xargs pep8
+	find . -name \*.py | grep -v 'conf.py' | xargs pep8
 	# find . -name \*.py | grep -v "^test_" | xargs pylint --errors-only --reports=n
 	# pyntch
 	# pyflakes
