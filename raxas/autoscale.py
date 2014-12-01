@@ -90,17 +90,21 @@ def is_node_master(scalingGroup):
     systemUUID = None
     systemUUID_file = None
     node_id = None
+    logger.debug('executing dmidecode to get system uuid')
     try:
         sysout = subprocess.Popen(['dmidecode', '-s', 'system-uuid'],
                                   stdout=subprocess.PIPE)
         systemUUID = sysout.communicate()[0]
         systemUUID = systemUUID.strip()
-    except:
+    except Exception, e:
+        logger.debug('Failed to execute dmidecode: %s' % str(e))
         pass
 
     if systemUUID is not None:
+        logger.debug("Checking if file '%s' exists " % systemUUID)
         systemUUID_file = common.check_file(systemUUID)
         if systemUUID_file is not None:
+            logger.debug("Reading file '%s' to get node id" % systemUUID_file)
             try:
                 rfh = open(systemUUID_file, 'r').read()
                 node_id = rfh.strip()
@@ -116,14 +120,16 @@ def is_node_master(scalingGroup):
         node_id = common.get_machine_uuid()
 
         if systemUUID_file is None and systemUUID is not None:
+            logger.debug("Creating file '%s' to save node id"
+                         % systemUUID_file)
             try:
                 newFile = '/etc/rax-autoscaler/' + systemUUID
                 wfh = open(newFile, 'w')
                 wfh.write(node_id)
                 wfh.close()
-            except:
-                logger.warning("Unable to create a file '%s' in '%s'"
-                               % (systemUUID, '/etc/rax-autoscaler'))
+            except Exception, e:
+                logger.warning("Unable to create a file '%s': '%s'"
+                               % (systemUUID, str(e)))
                 pass
 
     sg_state = scalingGroup.get_state()
@@ -364,6 +370,7 @@ def main():
         if len(config_data['autoscale_groups'].keys()) == 1:
             as_group = config_data['autoscale_groups'].keys()[0]
         else:
+            logger.debug("Getting system hostname")
             try:
                 sysout = subprocess.Popen(['hostname'], stdout=subprocess.PIPE)
                 hostname = (sysout.communicate()[0]).strip()
@@ -372,7 +379,8 @@ def main():
 
                 group_value = config_data["autoscale_groups"][hostname]
                 as_group = hostname
-            except:
+            except Exception, e:
+                logger.debug("Failed to get hostname: %s" % str(e))
                 logger.warning("Multiple group found in config file, "
                                "please use 'as-group' option")
                 exit_with_error('Unable to identify targeted group')

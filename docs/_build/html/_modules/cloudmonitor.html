@@ -78,7 +78,8 @@
 
 
 <div class="viewcode-block" id="add_cm_check"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.add_cm_check">[docs]</a><span class="k">def</span> <span class="nf">add_cm_check</span><span class="p">(</span><span class="n">server_id</span><span class="p">,</span> <span class="n">check_type</span><span class="p">,</span> <span class="n">check_config</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This function adds Cloud Monitoring cpu check to a server, if it is not already present</span>
+    <span class="sd">&quot;&quot;&quot;This function adds Cloud Monitoring cpu check to a server,</span>
+<span class="sd">       if it is not already present</span>
 
 <span class="sd">    :param server_id: server identity</span>
 <span class="sd">    :type name: str</span>
@@ -124,7 +125,7 @@
 
 <span class="sd">    :param agent_id: agent id</span>
 <span class="sd">    :type name: str</span>
-<span class="sd">    </span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cm</span> <span class="o">=</span> <span class="n">pyrax</span><span class="o">.</span><span class="n">cloud_monitoring</span>
     <span class="k">try</span><span class="p">:</span>
@@ -152,16 +153,16 @@
 
 <span class="sd">    :param server_id: server id</span>
 <span class="sd">    :type name: str</span>
-<span class="sd">    :returns: d_cached_servers_name[server_id] (str) </span>
-<span class="sd">    </span>
+<span class="sd">    :returns: d_cached_servers_name[server_id] (str)</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">d_cached_servers_name</span>
-    
+
     <span class="k">try</span><span class="p">:</span>
         <span class="c"># try returning name from cache</span>
-    
+
         <span class="k">return</span> <span class="n">d_cached_servers_name</span><span class="p">[</span><span class="n">server_id</span><span class="p">]</span>
-    
+
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
         <span class="c"># ask Rackspace API</span>
         <span class="n">server</span> <span class="o">=</span> <span class="n">get_server</span><span class="p">(</span><span class="n">server_id</span><span class="p">)</span>
@@ -174,7 +175,7 @@
 </div>
 <div class="viewcode-block" id="scaling_group_servers"><a class="viewcode-back" href="../cloudmonitor.html#cloudmonitor.scaling_group_servers">[docs]</a><span class="k">def</span> <span class="nf">scaling_group_servers</span><span class="p">(</span><span class="n">sgid</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; list servers&#39; id in scaling group sgid</span>
-<span class="sd">    </span>
+
 <span class="sd">    :param sgid: scaling group id</span>
 <span class="sd">    :type name: str</span>
 
