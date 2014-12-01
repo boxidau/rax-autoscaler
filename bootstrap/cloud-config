@@ -16,6 +16,7 @@ write_files:
    - path: /etc/cron.d/autoscaler
      owner: root:root
      content: |
+          PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           * * * * * root autoscale --cluster >/tmp/autoscale.log 2>&1
     
    - path: /etc/rax-autoscaler/config.json
