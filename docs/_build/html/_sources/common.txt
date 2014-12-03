@@ -1,6 +1,0 @@
-common
-============================
-
-.. automodule:: common
-    :members:
-

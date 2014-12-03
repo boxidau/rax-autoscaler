@@ -55,7 +55,7 @@ teddy.schmitz@rackspace.com''',
     package_data={'docs': ['*.rst'], 'raxas': ['requirements.txt'], },
     # scripts=['raxas'],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2',
         'Environment :: Console',
