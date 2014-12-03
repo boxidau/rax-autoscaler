@@ -1,0 +1,45 @@
+#cloud-config
+
+# Install pip package on first boot
+packages:
+  - python-pip
+
+# Install rax-autoscaler
+# Create /etc/rax-autoscaler to store config.json
+runcmd:
+    - [ pip, install, rax-autoscaler ]
+    - [ mkdir, '-p', /etc/rax-autoscaler ]
+
+# Create cron job to execute autoscale every minute and redirect STDOUT to /tmp/autoscale.log
+# Create config.json file for autoscaler
+write_files:
+   - path: /etc/cron.d/autoscaler
+     owner: root:root
+     content: |
+          PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          * * * * * root autoscale --cluster >/tmp/autoscale.log 2>&1
+    
+   - path: /etc/rax-autoscaler/config.json
+     owner: root:root
+     permissions: '0644'
+     content: |
+           {
+              "auth": {
+                    "os_username": "api_username",
+                     "os_password": "api_key",
+                     "os_region_name": "os_region_name"
+               },
+               "autoscale_groups": {
+                       "group0": {
+                          "group_id": "group id",
+                          "scale_up_policy": "scale up policy id",
+                          "scale_down_policy": "scale down policy id",
+                          "check_type": "agent.load_average",
+                          "check_config": {},
+                          "metric_name": "1m",
+                          "scale_up_threshold": 0.6,
+                          "scale_down_threshold": 0.4
+                       }
+                }
+            }
+

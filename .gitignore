@@ -1,7 +1,12 @@
-config.ini
+.DS_Store
+logging.log
+config.json
 include/
 *.swp
 .token_cache
+.idea
+README.txt
+logging.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -13,7 +18,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-bin/
 build/
 develop-eggs/
 dist/
@@ -26,6 +30,9 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# docs
+docs/_build
 
 # Installer logs
 pip-log.txt
