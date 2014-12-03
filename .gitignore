@@ -1,3 +1,4 @@
+.DS_Store
 logging.log
 config.json
 include/
@@ -29,6 +30,9 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# docs
+docs/_build
 
 # Installer logs
 pip-log.txt
