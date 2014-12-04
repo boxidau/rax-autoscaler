@@ -34,7 +34,8 @@ class Auth(object):
     def __init__(self, username, apikey, region,
                  identity_type="rackspace",
                  token_filename=os.path.expanduser('~/.rax-autoscaler-token')):
-        """This method initialize the Auth class
+        '''
+        This method initialize the Auth class
 
         :param username: account user name
         :type name: str
@@ -42,8 +43,8 @@ class Auth(object):
         :type name: str
         :param region: location
         :type name: str
+        '''
 
-        """
         logger = logging.getLogger(__name__)
         self._username = username
         self._apikey = apikey
@@ -55,9 +56,9 @@ class Auth(object):
         logger.debug(self.__str__())
 
     def __str__(self, *args, **kwargs):
-        """
+        '''
         This is use for generating logger debug message
-        """
+        '''
         return ("username: %s, apikey: %s, identity_type: %s, "
                 "region: %s, token_filename: %s, token: %s, "
                 "tenant_id: %s" %
@@ -66,11 +67,11 @@ class Auth(object):
                  self._tenant_id))
 
     def status(self):
-        """
+        '''
         This queries pyrax for values
 
-       :returns: list -- the return value
-        """
+        :returns: list -- the return value
+        '''
         pi = pyrax.identity
         return ("pyrax reports -- "
                 "username: %s, apikey: %s, region: %s, token: %s, "
@@ -79,21 +80,21 @@ class Auth(object):
 
     @property
     def token_filename(self):
-        """
+        '''
         This returns token filename
 
-       :returns: _token_filename
-        """
+        :returns: _token_filename
+        '''
         return self._token_filename
 
     def authenticate(self):
-        """
+        '''
         This method loads a token from a file,
         authenticate with it, and if it fails then tries to authenticate
         with credentials
 
         :returns: True or False (Boolean)
-        """
+        '''
         logger = logging.getLogger(__name__)
         # try to authenticate with token
         if self.load_token():
@@ -124,11 +125,11 @@ class Auth(object):
             return False
 
     def authenticate_credentials(self):
-        """
+        '''
         This method try to authenticate with available credentials
 
         :returns: True or False (Boolean)
-        """
+        '''
         logger = logging.getLogger(__name__)
         logger.debug('authenticating with credentials '
                      '(identity_type:%s, username:%s, api-key:%s, region=%s)'
@@ -154,11 +155,11 @@ class Auth(object):
             return False
 
     def authenticate_token(self):
-        """
+        '''
         This authenticate with Rackspace cloud using existing token.
 
         :returns: True or False (Boolean)
-        """
+        '''
         logger = logging.getLogger(__name__)
         pyrax.set_setting('identity_type', self._identity_type)
         try:
@@ -173,9 +174,9 @@ class Auth(object):
             return False
 
     def force_unauthenticate(self):
-        """
+        '''
         This unauthenticate and delete token file
-        """
+        '''
         # unauthenticate
         try:
             pyrax.identity.unauthenticate()
@@ -188,11 +189,11 @@ class Auth(object):
             pass
 
     def load_token(self):
-        """
+        '''
         This loads token from a file
 
         :returns: True or False (Boolean)
-        """
+        '''
         logger = logging.getLogger(__name__)
         try:
             with open(self._token_filename, 'r') as f:
@@ -219,11 +220,11 @@ class Auth(object):
             return False
 
     def save_token(self):
-        """
+        '''
         This saves token to a file
 
         :returns: True or False (Boolean)
-        """
+        '''
         logger = logging.getLogger(__name__)
         data = {'token': self._token, 'tenant_id': self._tenant_id}
         try:
