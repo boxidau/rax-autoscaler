@@ -8,7 +8,7 @@ Can be used and installed on the auto-scale group members or on a dedicated mana
 
 [![Stories in Ready](https://badge.waffle.io/boxidau/rax-autoscaler.svg?label=ready&title=Ready)](http://waffle.io/boxidau/rax-autoscaler)
 
-**ATTENTION!** *rax-autoscaler* is in a very early development stage.
+*ATTENTION!* *rax-autoscaler* is in early development stage. Use with caution.
 
 ## Installation
 
@@ -38,7 +38,7 @@ Once configured you can invoke the autoscaler.py script.
 
 --as-group option should be used when you have multiple groups listed in the config.json file.
 
---config-file option should be used if config.json file does not exists in current directory or in '/etc/rax-autoscaler' path. 
+--config-file option should be used if config.json file does not exists in current directory or in '/etc/rax-autoscaler' path.
 
 Once tested you should configure this script to run as a cron job either on a management instance or on all cluster members
 
