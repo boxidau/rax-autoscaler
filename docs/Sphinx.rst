@@ -27,7 +27,7 @@ You can add inline comments about a function or class at the begining for exampl
       """
 
 
-Execute make command with in project directory with doc arg:
+Execute make command in project directory with doc arg:
 
 ::
 

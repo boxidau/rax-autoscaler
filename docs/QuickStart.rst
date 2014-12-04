@@ -11,18 +11,19 @@ Configuration
 =============
 
 Edit config.json adding the following:
-- API username
-- API key
-- Region name
-- Autoscaling group section should contain:
-  - AutoScale Group UUID
-  - Scale Up Policy UUID
-  - Scale Down Policy UUID
-  - Check Type (agent.cpu, agent.load_average...)
-  - Metric Name (depends on the check type)
-  - Scale Up Threshold
-  - Scale Down Threshold
-  - Webhooks Url (Pre & Post commit url(s) for scale up/down)
+* API username
+* API key
+* Region name
+* Autoscaling group section should contain:
+
+  * AutoScale Group UUID
+  * Scale Up Policy UUID
+  * Scale Down Policy UUID
+  * Check Type (agent.cpu, agent.load_average...)
+  * Metric Name (depends on the check type)
+  * Scale Up Threshold
+  * Scale Down Threshold
+  * Webhooks Url (Pre & Post commit url(s) for scale up/down)
 
 Usage
 =====
@@ -76,11 +77,11 @@ In the example the value of user_data contains the base64 encoded version of the
 
 To base64 encode a script
 ::
-  cat /path/to/USER_DATA | base64
+cat /path/to/USER_DATA | base64
 
 Size of USER_DATA can be reduced with gzip:
 ::
-  cat /path/to/USER_DATA | gzip | base64
+cat /path/to/USER_DATA | gzip | base64
 
 Note
 ====

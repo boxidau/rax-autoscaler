@@ -18,11 +18,25 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
-  
+
    QuickStart
    Sphinx
 
+.. automodule:: autoscale
+   :members:
 
+.. automodule:: common
+   :members:
+
+.. automodule:: auth
+   :members:
+
+.. automodule:: cloudmonitor
+   :members:
+
+.. automodule:: colouredconsolehandler
+   :members:
+   
 Indices and tables
 ==================
 
