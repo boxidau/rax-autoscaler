@@ -27,8 +27,8 @@ import traceback
 
 
 class Auth(object):
-    '''This class implements Rackspace cloud account authentication
-
+    '''
+    This class implements Rackspace cloud account authentication
     '''
 
     def __init__(self, username, apikey, region,
@@ -55,8 +55,8 @@ class Auth(object):
         logger.debug(self.__str__())
 
     def __str__(self, *args, **kwargs):
-        """This is use for generating logger debug message
-
+        """
+        This is use for generating logger debug message
         """
         return ("username: %s, apikey: %s, identity_type: %s, "
                 "region: %s, token_filename: %s, token: %s, "
@@ -66,9 +66,10 @@ class Auth(object):
                  self._tenant_id))
 
     def status(self):
-        """ This queries pyrax for values
+        """
+        This queries pyrax for values
 
-            :returns: list -- the return value
+       :returns: list -- the return value
         """
         pi = pyrax.identity
         return ("pyrax reports -- "
@@ -78,18 +79,20 @@ class Auth(object):
 
     @property
     def token_filename(self):
-        """ This returns token filename
+        """
+        This returns token filename
 
-            :returns: _token_filename
+       :returns: _token_filename
         """
         return self._token_filename
 
     def authenticate(self):
-        """ This method loads a token from a file,
-            authenticate with it, and if it fails then tries to authenticate
-            with credentials
+        """
+        This method loads a token from a file,
+        authenticate with it, and if it fails then tries to authenticate
+        with credentials
 
-            :returns: True or False (Boolean)
+        :returns: True or False (Boolean)
         """
         logger = logging.getLogger(__name__)
         # try to authenticate with token
@@ -121,7 +124,8 @@ class Auth(object):
             return False
 
     def authenticate_credentials(self):
-        """This method try to authenticate with available credentials
+        """
+        This method try to authenticate with available credentials
 
         :returns: True or False (Boolean)
         """
@@ -150,7 +154,8 @@ class Auth(object):
             return False
 
     def authenticate_token(self):
-        """This authenticate with Rackspace cloud using existing token.
+        """
+        This authenticate with Rackspace cloud using existing token.
 
         :returns: True or False (Boolean)
         """
@@ -168,8 +173,8 @@ class Auth(object):
             return False
 
     def force_unauthenticate(self):
-        """ This unauthenticate and delete token file
-
+        """
+        This unauthenticate and delete token file
         """
         # unauthenticate
         try:
@@ -183,7 +188,8 @@ class Auth(object):
             pass
 
     def load_token(self):
-        """This loads token from a file
+        """
+        This loads token from a file
 
         :returns: True or False (Boolean)
         """
@@ -213,7 +219,8 @@ class Auth(object):
             return False
 
     def save_token(self):
-        """This saves token to a file
+        """
+        This saves token to a file
 
         :returns: True or False (Boolean)
         """
