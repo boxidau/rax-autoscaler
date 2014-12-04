@@ -26,6 +26,9 @@ except ImportError:
 
 from raxas.version import VERSION
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setup(
     name='rax-autoscaler',
     version=VERSION,
@@ -45,10 +48,7 @@ teddy.schmitz@rackspace.com''',
     maintainer_email='simone.soldateschi@rackspace.co.uk',
     platforms='any',
     include_package_data=True,
-    install_requires=[
-        "pyrax",
-        "termcolor"
-    ],
+    install_requires=required,
     license='Apache License, Version 2.0',
     long_description=open('README.txt').read(),
     packages=find_packages(),
