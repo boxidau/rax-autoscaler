@@ -163,13 +163,13 @@ class Auth(object):
         logger = logging.getLogger(__name__)
         pyrax.set_setting('identity_type', self._identity_type)
         try:
-            pyrax.auth_with_token(self._token, self._tenant_id)
-            logging.info('authenticated with token:%s, tenant_id:%s' %
-                         (self._token, self._tenant_id))
+            pyrax.auth_with_token(self._token, self._tenant_id, region=self._region)
+            logging.info('authenticated with token:%s, tenant_id:%s, region:%s' %
+                         (self._token, self._tenant_id, self._region))
             return True
         except:
-            logging.info('cannot authenticate with token:%s, tenant_id:%s' %
-                         (self._token, self._tenant_id))
+            logging.info('cannot authenticate with token:%s, tenant_id:%s, region:%s' %
+                         (self._token, self._tenant_id, self._region))
             logger.debug(traceback.format_exc())
             return False
 
