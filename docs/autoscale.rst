@@ -1,6 +1,0 @@
-autoscale
-============================
-
-.. automodule:: autoscale
-    :members:
-

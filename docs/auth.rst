@@ -1,6 +1,0 @@
-auth
-============================
-
-.. automodule:: auth
-    :members:
-
