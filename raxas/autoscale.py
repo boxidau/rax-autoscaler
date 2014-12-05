@@ -312,15 +312,11 @@ def autoscale(group, config_data, args):
         logger.info('Cluster within target paramters')
 
 
-def main():
+def parse_args():
     """This function validates user arguments and data in configuration file.
-       It calls auth class for authentication and autoscale to execute scaling
-       policy
 
     """
-
     parser = argparse.ArgumentParser()
-
     parser.add_argument('--as-group', required=False,
                         help='The autoscale group config ID')
     parser.add_argument('--os-username', required=False,
@@ -329,7 +325,7 @@ def main():
                         help='Rackspace Cloud account API key')
     parser.add_argument('--config-file', required=False, default='config.json',
                         help='The autoscale configuration .ini file'
-                        '(default: config.json)'),
+                             '(default: config.json)'),
     parser.add_argument('--os-region-name', required=False,
                         help='The region to build the servers',
                         choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
@@ -340,12 +336,22 @@ def main():
     parser.add_argument('--dry-run', required=False, default=False,
                         action='store_true',
                         help='Do not actually perform any scaling operations '
-                        'or call webhooks')
+                             'or call webhooks')
     parser.add_argument('--max-sample', required=False, default=10, type=int,
                         help='Maximum number of servers to obtain monitoring '
-                        'samples from')
-
+                             'samples from')
     args = vars(parser.parse_args())
+
+    return args
+
+
+def main():
+    """This function calls auth class for authentication and autoscale to
+       execute scaling policy
+
+    """
+
+    args = parse_args()
 
     # CONFIG.ini
     config_file = common.check_file(args['config_file'])
