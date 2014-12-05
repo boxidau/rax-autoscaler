@@ -26,10 +26,10 @@ upload: source
 #rpm:
 #	$(PYTHON) setup.py bdist_rpm --post-install=rpm/postinstall --pre-uninstall=rpm/preuninstall
 
-#test:
+test:
 #	unit2 discover -s tests -t .
 #	python -mpytest weasyprint
-#	nosetests
+	nosetests -v
 
 check:
 	find . -name \*.py | grep -v 'conf.py' | xargs pep8
