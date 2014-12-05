@@ -18,8 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION = "0.2.25"
-
+VERSION = "0.2.27"
 
 def return_version():
     return "rax-autoscaler v%s -- Copyright @ 2014 Rackspace" % VERSION
