@@ -7,5 +7,6 @@ install:
   - touch README.txt
   - pip install .
   - pip install -r requirements.txt
+  - pip install pep8
 # command to run tests
 script: make check
