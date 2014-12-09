@@ -184,46 +184,20 @@ def webhook_call(config_data, group, policy, key):
     if url_list is None:
         return None
 
-    group_id = get_group_value(config_data, group, 'group_id')
-    if group_id is None:
+    try:
+        group_config = config_data['autoscale_groups'][group]
+        data = json.dumps({
+            'group_id': group_config['group_id'],
+            'scale_up_policy': group_config['scale_up_policy'],
+            'scale_down_policy': group_config['scale_down_policy'],
+            'check_type': group_config['check_type'],
+            'metric_name': group_config['metric_name'],
+            'scale_up_threshold': group_config['scale_up_threshold'],
+            'scale_down_threshold': group_config['scale_down_threshold']
+        })
+    except KeyError as error:
+        logger.error('Cannot build webhook data. invalid key: %s' % error)
         return None
-
-    up_policy_id = get_group_value(config_data, group,
-                                   'scale_up_policy')
-    if up_policy_id is None:
-        return None
-
-    down_policy_id = get_group_value(config_data, group,
-                                     'scale_down_policy')
-    if down_policy_id is None:
-        return None
-
-    check_type = get_group_value(config_data, group, 'check_type')
-    if check_type is None:
-        return None
-
-    metric_name = get_group_value(config_data, group,
-                                  'metric_name')
-    if check_type is None:
-        return None
-
-    up_threshold = get_group_value(config_data, group,
-                                   'scale_up_threshold')
-    if up_threshold is None:
-        return None
-
-    down_threshold = get_group_value(config_data, group,
-                                     'scale_down_threshold')
-    if up_threshold is None:
-        return None
-
-    data = json.dumps({'group_id': group_id,
-                       'scale_up_policy': up_policy_id,
-                       'scale_down_policy': down_policy_id,
-                       'check_type': check_type,
-                       'metric_name': metric_name,
-                       'scale_up_threshold': up_threshold,
-                       'scale_down_threshold': down_threshold})
 
     urls = url_list[key]
     for url in urls:
