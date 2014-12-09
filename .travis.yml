@@ -7,7 +7,9 @@ install:
 - pip install .
 - pip install -r requirements.txt
 - pip install pep8
-script: make check
+script:
+- make check
+- make test
 notifications:
   slack:
     secure: fCkmPpcIOM5Q7YFlHKaXF4SCirVmCK+CusH2jGTL7wql1OsXyooucVoB2V7IUsBuqKjR1I3aShIAuTGMZjboY6MCl+8n85cYsRpIzMWY7i4r7KKVL2EEWoX+plK6SlrzexkiteVHDJW9nwSv0bMWAtVavCyp6yxqbVaDU06oavo=
