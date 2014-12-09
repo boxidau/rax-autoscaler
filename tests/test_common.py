@@ -158,7 +158,8 @@ class CommonTest(unittest.TestCase):
                          {'post': ['postdwn1'], 'pre': ['predwn1', 'predwn2']})
 
         self.assertEqual(common.get_webhook_value(config, 'group0',
-                                                  'should raise KeyError'), None)
+                                                  'should raise KeyError'),
+                         None)
 
 if __name__ == '__main__':
     unittest.main()
