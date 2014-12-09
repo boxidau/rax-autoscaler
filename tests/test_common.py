@@ -89,7 +89,7 @@ class CommonTest(unittest.TestCase):
     def test_check_file_should_return_none(self, isfile_mock):
         check_file = 'config.cfg'
 
-        self.assertIsNone(common.check_file(check_file))
+        self.assertEqual(common.check_file(check_file), None)
         isfile_mock.assert_called_with('/etc/rax-autoscaler/config.cfg')
 
     def test_get_config_should_match(self):
@@ -104,7 +104,7 @@ class CommonTest(unittest.TestCase):
         with patch('__builtin__.open',
                    mock_open(read_data='trcfucbujnmk+')) as open_mock:
 
-            self.assertIsNone(common.get_config('config.cfg'))
+            self.assertEqual(common.get_config('config.cfg'), None)
             open_mock.assert_called_once_with('config.cfg')
 
     @patch('raxas.common.subprocess')
@@ -129,9 +129,11 @@ class CommonTest(unittest.TestCase):
             common.get_user_value(args, json.loads(self._config_json),
                                   'os_region_name'), 'os_region_name')
 
-        with self.assertRaises(KeyError):
-            common.get_user_value(args, json.loads(self._config_json),
-                                  'should raise KeyError')
+        self.assertRaises(KeyError,
+                          common.get_user_value,
+                          args,
+                          json.loads(self._config_json),
+                          'should raise KeyError')
 
     def test_get_group_value(self):
         config = json.loads(self._config_json)
@@ -143,8 +145,8 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(common.get_group_value(config, 'group0',
                                                 'check_config'), {})
 
-        self.assertIsNone(common.get_group_value(config, 'group0',
-                                                 'should raise KeyError'))
+        self.assertEqual(common.get_group_value(config, 'group0',
+                                                'should raise KeyError'), None)
 
     def test_get_webhook_value(self):
         config = json.loads(self._config_json)
@@ -155,8 +157,8 @@ class CommonTest(unittest.TestCase):
                                                   'scale_down'),
                          {'post': ['postdwn1'], 'pre': ['predwn1', 'predwn2']})
 
-        self.assertIsNone(common.get_webhook_value(config, 'group0',
-                                                   'should raise KeyError'))
+        self.assertEqual(common.get_webhook_value(config, 'group0',
+                                                  'should raise KeyError'), None)
 
 if __name__ == '__main__':
     unittest.main()
