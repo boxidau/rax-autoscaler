@@ -166,23 +166,42 @@ class CommonTest(unittest.TestCase):
     @patch('urllib2.Request')
     def test_webhook_call(self, request_mock, urlopen_mock):
         config = json.loads(self._config_json)
+
         common.webhook_call(config, 'group0', 'scale_up', 'pre')
+        self.assertEqual(request_mock.call_count, 2)
+        self.assertEqual(urlopen_mock.call_count, 2)
 
-        calls = [call('preup1', '{"scale_down_policy": "scale down policy id",'
-                                ' "scale_up_threshold": 0.59999999999999998, '
-                                '"metric_name": "1m", '
-                                '"scale_up_policy": "scale up policy id", '
-                                '"scale_down_threshold": 0.40000000000000002, '
-                                '"group_id": "group id", '
-                                '"check_type": "agent.load_average"}',
-                      {'Content-Type': 'application/json'}),
-                 call('preup2', '{"scale_down_policy": "scale down policy id",'
-                                ' "scale_up_threshold": 0.59999999999999998, '
-                                '"metric_name": "1m", '
-                                '"scale_up_policy": "scale up policy id", '
-                                '"scale_down_threshold": 0.40000000000000002, '
-                                '"group_id": "group id", '
-                                '"check_type": "agent.load_average"}',
-                      {'Content-Type': 'application/json'})]
+    @patch('urllib2.urlopen')
+    @patch('urllib2.Request')
+    def test_webhook_should_not_send_request_on_empty_input(self,
+                                                            request_mock,
+                                                            urlopen_mock):
+        config = json.loads(self._config_json)
 
-        request_mock.assert_has_calls(calls)
+        common.webhook_call(config, '', '', '')
+        self.assertEqual(request_mock.call_count, 0)
+        self.assertEqual(urlopen_mock.call_count, 0)
+
+    @patch('urllib2.urlopen')
+    @patch('urllib2.Request')
+    @patch('raxas.common.get_group_value')
+    def test_webhook_should_not_call_on_invalid_group(self,
+                                                      webhook_mock,
+                                                      request_mock,
+                                                      urlopen_mock):
+        config = json.loads(self._config_json)
+
+        common.webhook_call(config, 'group does not exist', 'scale_up', 'pre')
+        self.assertEqual(request_mock.call_count, 0)
+        self.assertEqual(urlopen_mock.call_count, 0)
+
+    @patch('urllib2.urlopen')
+    @patch('urllib2.Request')
+    def test_webhook_should_not_call_on_invalid_policy(self,
+                                                       request_mock,
+                                                       urlopen_mock):
+        config = json.loads(self._config_json)
+
+        common.webhook_call(config, 'group0', 'policy does not exist', 'pre')
+        self.assertEqual(request_mock.call_count, 0)
+        self.assertEqual(urlopen_mock.call_count, 0)
