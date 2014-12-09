@@ -81,9 +81,9 @@ def is_node_master(scalingGroup):
 
     :param scalingGroup: data about servers in scaling group retrieve from
                          cloudmonitor
-    :returns: 1 : if cluster state is unknown
-              2 : node is a master
-              3 : node is not a master
+    :returns: 1     : if cluster state is unknown
+              2     : node is a master
+              None  : node is not a master
 
     """
     masters = []
