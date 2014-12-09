@@ -101,7 +101,3 @@ class AuthTest(unittest.TestCase):
         mock_creds.side_effect = pyrax.exceptions.AuthenticationFailed
 
         self.assertFalse(auth.authenticate_credentials())
-
-
-if __name__ == "__main__":
-    unittest.main()

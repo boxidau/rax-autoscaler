@@ -186,6 +186,3 @@ class CommonTest(unittest.TestCase):
                       {'Content-Type': 'application/json'})]
 
         request_mock.assert_has_calls(calls)
-
-if __name__ == '__main__':
-    unittest.main()
