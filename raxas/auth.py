@@ -218,7 +218,7 @@ class Auth(object):
             self._tenant_id = data['tenant_id']
             return True
         except KeyError:
-            logger.error()
+            logger.error("cannot load token from data: '%s'" % data)
             logger.debug(traceback.format_exc())
             return False
 
