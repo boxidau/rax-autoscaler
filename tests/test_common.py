@@ -130,11 +130,10 @@ class CommonTest(unittest.TestCase):
                                   'os_region_name'), 'os_region_name')
 
         # TODO:is this really a valid test??
-        self.assertRaises(KeyError,
-                          common.get_user_value,
-                          args,
-                          json.loads(self._config_json),
-                          'should raise KeyError')
+        self.assertEqual(common.get_user_value(args,
+                                               json.loads(self._config_json),
+                                               'should raise KeyError'),
+                         None)
 
     def test_get_group_value(self):
         config = json.loads(self._config_json)

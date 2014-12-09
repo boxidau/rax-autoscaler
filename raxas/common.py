@@ -111,14 +111,14 @@ def get_user_value(args, config, key):
     """
     logger = get_logger()
     value = None
-    if args[key] is None:
-        try:
+    try:
+        if args[key] is None:
             value = config['auth'][key.lower()]
-        except:
+        else:
+            value = args[key]
+    except:
             logger.error("Invalid config, '" + key +
                          "' key not found in authentication section")
-    else:
-        value = args[key]
 
     return value
 
