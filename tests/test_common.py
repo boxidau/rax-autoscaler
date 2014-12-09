@@ -24,7 +24,7 @@ import os
 import json
 import uuid
 import unittest
-from mock import MagicMock, patch, mock_open
+from mock import MagicMock, patch, mock_open, call
 
 from raxas import common
 from raxas.autoscale import parse_args
@@ -129,6 +129,7 @@ class CommonTest(unittest.TestCase):
             common.get_user_value(args, json.loads(self._config_json),
                                   'os_region_name'), 'os_region_name')
 
+        # TODO:is this really a valid test??
         self.assertRaises(KeyError,
                           common.get_user_value,
                           args,
@@ -160,6 +161,31 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(common.get_webhook_value(config, 'group0',
                                                   'should raise KeyError'),
                          None)
+
+    @patch('urllib2.urlopen')
+    @patch('urllib2.Request')
+    def test_webhook_call(self, request_mock, urlopen_mock):
+        config = json.loads(self._config_json)
+        common.webhook_call(config, 'group0', 'scale_up', 'pre')
+
+        calls = [call('preup1', '{"scale_down_policy": "scale down policy id",'
+                                ' "scale_up_threshold": 0.59999999999999998, '
+                                '"metric_name": "1m", '
+                                '"scale_up_policy": "scale up policy id", '
+                                '"scale_down_threshold": 0.40000000000000002, '
+                                '"group_id": "group id", '
+                                '"check_type": "agent.load_average"}',
+                      {'Content-Type': 'application/json'}),
+                 call('preup2', '{"scale_down_policy": "scale down policy id",'
+                                ' "scale_up_threshold": 0.59999999999999998, '
+                                '"metric_name": "1m", '
+                                '"scale_up_policy": "scale up policy id", '
+                                '"scale_down_threshold": 0.40000000000000002, '
+                                '"group_id": "group id", '
+                                '"check_type": "agent.load_average"}',
+                      {'Content-Type': 'application/json'})]
+
+        request_mock.assert_has_calls(calls)
 
 if __name__ == '__main__':
     unittest.main()
