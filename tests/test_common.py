@@ -204,3 +204,32 @@ class CommonTest(unittest.TestCase):
         common.webhook_call(config, 'group0', 'policy does not exist', 'pre')
         self.assertEqual(request_mock.call_count, 0)
         self.assertEqual(urlopen_mock.call_count, 0)
+
+    @patch('urllib2.urlopen')
+    @patch('urllib2.Request')
+    def test_webhook_should_not_call_on_invalid_config(self,
+                                                       request_mock,
+                                                       urlopen_mock):
+        config = json.loads("""
+            {
+                "autoscale_groups": {
+                    "group0": {
+                        "webhooks": {
+                            "scale_up": {
+                                "pre": [
+                                    "preup1",
+                                    "preup2"
+                                ],
+                                "post": [
+                                    "postup1"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+            """)
+
+        common.webhook_call(config, 'group0', 'scale_up', 'pre')
+        self.assertEqual(request_mock.call_count, 0)
+        self.assertEqual(urlopen_mock.call_count, 0)
