@@ -233,3 +233,14 @@ class CommonTest(unittest.TestCase):
         common.webhook_call(config, 'group0', 'scale_up', 'pre')
         self.assertEqual(request_mock.call_count, 0)
         self.assertEqual(urlopen_mock.call_count, 0)
+
+    @patch('urllib2.urlopen')
+    @patch('urllib2.Request')
+    def test_webhook_should_not_call_on_invalid_key(self,
+                                                    request_mock,
+                                                    urlopen_mock):
+        config = json.loads(self._config_json)
+
+        common.webhook_call(config, 'group0', 'scale_up', 'does not exist')
+        self.assertEqual(request_mock.call_count, 0)
+        self.assertEqual(urlopen_mock.call_count, 0)

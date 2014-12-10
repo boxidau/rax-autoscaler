@@ -180,8 +180,10 @@ def webhook_call(config_data, group, policy, key):
     logger = get_logger()
 
     logger.info('Launching %s webhook call' % key)
-    url_list = get_webhook_value(config_data, group, policy)
-    if url_list is None:
+    try:
+        urls = get_webhook_value(config_data, group, policy)[key]
+    except (KeyError, TypeError):
+        logger.error('Webhook urls for %s cannot be found in config' % key)
         return None
 
     try:
@@ -199,7 +201,6 @@ def webhook_call(config_data, group, policy, key):
         logger.error('Cannot build webhook data. invalid key: %s' % error)
         return None
 
-    urls = url_list[key]
     for url in urls:
         logger.info("Sending POST request to url: '%s'" % url)
         try:
