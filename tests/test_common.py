@@ -21,6 +21,7 @@
 from __future__ import with_statement
 
 import os
+import sys
 import json
 import uuid
 import unittest
@@ -116,9 +117,10 @@ class CommonTest(unittest.TestCase):
 
             self.assertEqual(common.get_machine_uuid(), current_uuid)
 
-    @patch('sys.argv', return_value=['/path/to/noserunner.py', '/home/tests/'])
-    def test_get_user_value_from_config(self, argv_mock):
+    def test_get_user_value_from_config(self):
+        sys.argv = ['/path/to/noserunner.py']
         args = parse_args()
+
         self.assertEqual(
             common.get_user_value(args, json.loads(self._config_json),
                                   'os_username'), 'api_username')
@@ -129,11 +131,18 @@ class CommonTest(unittest.TestCase):
             common.get_user_value(args, json.loads(self._config_json),
                                   'os_region_name'), 'os_region_name')
 
-        # TODO:is this really a valid test??
         self.assertEqual(common.get_user_value(args,
                                                json.loads(self._config_json),
                                                'should raise KeyError'),
                          None)
+
+    def test_get_user_value_from_args(self):
+        sys.argv = ['/path/to/noserunner.py', '--os-username', 'test.user']
+        args = parse_args()
+
+        self.assertEqual(
+            common.get_user_value(args, json.loads(self._config_json),
+                                  'os_username'), 'test.user')
 
     def test_get_group_value(self):
         config = json.loads(self._config_json)
