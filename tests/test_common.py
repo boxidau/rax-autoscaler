@@ -161,55 +161,43 @@ class CommonTest(unittest.TestCase):
                                                   'should raise KeyError'),
                          None)
 
-    @patch('urllib2.urlopen')
-    @patch('urllib2.Request')
-    def test_webhook_call(self, request_mock, urlopen_mock):
+    @patch('requests.post')
+    def test_webhook_call(self, post_mock):
         config = json.loads(self._config_json)
+        post_mock.return_value.status_code = 200
 
         common.webhook_call(config, 'group0', 'scale_up', 'pre')
-        self.assertEqual(request_mock.call_count, 2)
-        self.assertEqual(urlopen_mock.call_count, 2)
+        self.assertEqual(post_mock.call_count, 2)
 
-    @patch('urllib2.urlopen')
-    @patch('urllib2.Request')
+    @patch('requests.post')
     def test_webhook_should_not_send_request_on_empty_input(self,
-                                                            request_mock,
-                                                            urlopen_mock):
+                                                            post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, '', '', '')
-        self.assertEqual(request_mock.call_count, 0)
-        self.assertEqual(urlopen_mock.call_count, 0)
+        self.assertEqual(post_mock.call_count, 0)
 
-    @patch('urllib2.urlopen')
-    @patch('urllib2.Request')
+    @patch('requests.post')
     @patch('raxas.common.get_group_value')
     def test_webhook_should_not_call_on_invalid_group(self,
                                                       webhook_mock,
-                                                      request_mock,
-                                                      urlopen_mock):
+                                                      post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, 'group does not exist', 'scale_up', 'pre')
-        self.assertEqual(request_mock.call_count, 0)
-        self.assertEqual(urlopen_mock.call_count, 0)
+        self.assertEqual(post_mock.call_count, 0)
 
-    @patch('urllib2.urlopen')
-    @patch('urllib2.Request')
+    @patch('requests.post')
     def test_webhook_should_not_call_on_invalid_policy(self,
-                                                       request_mock,
-                                                       urlopen_mock):
+                                                       post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, 'group0', 'policy does not exist', 'pre')
-        self.assertEqual(request_mock.call_count, 0)
-        self.assertEqual(urlopen_mock.call_count, 0)
+        self.assertEqual(post_mock.call_count, 0)
 
-    @patch('urllib2.urlopen')
-    @patch('urllib2.Request')
+    @patch('requests.post')
     def test_webhook_should_not_call_on_invalid_config(self,
-                                                       request_mock,
-                                                       urlopen_mock):
+                                                       post_mock):
         config = json.loads("""
             {
                 "autoscale_groups": {
@@ -231,16 +219,12 @@ class CommonTest(unittest.TestCase):
             """)
 
         common.webhook_call(config, 'group0', 'scale_up', 'pre')
-        self.assertEqual(request_mock.call_count, 0)
-        self.assertEqual(urlopen_mock.call_count, 0)
+        self.assertEqual(post_mock.call_count, 0)
 
-    @patch('urllib2.urlopen')
-    @patch('urllib2.Request')
+    @patch('requests.post')
     def test_webhook_should_not_call_on_invalid_key(self,
-                                                    request_mock,
-                                                    urlopen_mock):
+                                                    post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, 'group0', 'scale_up', 'does not exist')
-        self.assertEqual(request_mock.call_count, 0)
-        self.assertEqual(urlopen_mock.call_count, 0)
+        self.assertEqual(post_mock.call_count, 0)

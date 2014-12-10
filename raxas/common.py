@@ -28,7 +28,7 @@ import ConfigParser
 import subprocess
 import datetime
 import json
-import urllib2
+import requests
 import logging
 
 
@@ -204,11 +204,9 @@ def webhook_call(config_data, group, policy, key):
     for url in urls:
         logger.info("Sending POST request to url: '%s'" % url)
         try:
-            req = urllib2.Request(url, data,
-                                  {'Content-Type': 'application/json'})
-            f = urllib2.urlopen(req)
-            response = f.read()
-            f.close()
+            response = requests.post(url, json=data)
+            logger.info("Received status code %d from url: '%s'"
+                        % (response.status_code, url))
         except Exception, e:
             logger.warning(str(e))
 
