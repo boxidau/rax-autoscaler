@@ -123,8 +123,8 @@ def get_machine_uuid():
 
             if (not cache_content[0] or cache_content[0] is None
                     or not cache_content[1] or cache_content[1] is None):
-                logger.warning("Cache file is corrupted, failed to
-                               read the content")
+                logger.warning("Cache file is corrupted, failed to"
+                               "read the content")
             else:
                 try:
                     if int(cache_content[0]) < int(server_uptime):
