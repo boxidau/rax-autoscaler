@@ -34,7 +34,7 @@ Once configured you can invoke the autoscaler.py script.
 
 --as-group option should be used when you have multiple groups listed in the config.json file.
 
---config-file option should be used if config.json file does not exists in current directory or in '/etc/rax-autoscaler' path. 
+--config-file option should be used if config.json file does not exists in current directory or in '/etc/rax-autoscaler' path.
 
 Once tested you should configure this script to run as a cron job either on a management instance or on all cluster members
 
@@ -83,10 +83,52 @@ Size of USER_DATA can be reduced with gzip:
 ::
 cat /path/to/USER_DATA | gzip | base64
 
+config.json
+===========
+
+There are a few things to configure both on the Rackspace API side (essentially creating the autoscale group and setting the launch configuration) and on our side.
+
+First up, create the autoscaling group in the portal and create 2 policies, 1 to scale up and another to scale down. The policy scale trigger should be set to webhook url.
+
+The things we need now on the Rackspace side aren't available in the portal so you'll have to make use of https://cloud-api.info/ to quickly interact with the API. To login, you'll need your API key which is available from the portal under the "Account Settings" screen.
+
+I'm going to quote the config/config-template.json file to make it easier to explain
+
+.. code-block:: json
+
+  "autoscale_groups": {
+      "group0": {
+
+"group0" is just a name used internally by autoscale.py to make it easier for the user to reference the scaling group. It can stay as group0 or be changed to match what you've called the group in the portal
+
+.. code-block:: json
+
+                    "group_id": "group id",
+
+"group_id" is the UUID of the scaling group, this can be seen in the portal or in pitchfork by calling the "List Scaling Groups" API method https://cloud-api.info/autoscale/#list_scaling_groups-autoscale
+
+.. code-block:: json
+
+          "scale_up_policy": "scale up policy id",
+          "scale_down_policy": "scale down policy id",
+
+scale_up_policy and scale_down_policy requires the UUID of the policies configured as webhooks in the portal. You can retrieve the UUID in pitchfork by calling the Get Policies List method https://cloud-api.info/autoscale/#get_policies_list-autoscale
+
+.. code-block:: json
+
+          "check_type": "agent.load_average",
+          "check_config": {},
+          "metric_name": "1m",
+
+currently, the only check type we have is load_average (ram utilisation is on the backlog)
+
+
+Webhook urls are an optional URL to call when we scale up or down. Pre is called before we call the Rackspace API, post is called after. You can configure multiple urls (or just a single url) to call at each stage.
+
 Note
 ====
   RAX-AutoScaler depends on Rackspace Monitoring Agent to get the data from nodes in scaling group.
-  
+
   If the agent is not installed please read: Install the Cloud Monitoring Agent: http://www.rackspace.com/knowledge_center/article/install-the-cloud-monitoring-agent
 
 
@@ -98,4 +140,3 @@ Contributing
 - Commit your changes (git commit -am 'Add some feature')
 - Push to the branch (git push origin my-new-feature)
 - Create new Pull Request
-

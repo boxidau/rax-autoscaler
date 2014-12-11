@@ -20,7 +20,6 @@ Contents:
    :maxdepth: 2
 
    QuickStart
-   Sphinx
 
 .. automodule:: autoscale
    :members:
@@ -36,7 +35,7 @@ Contents:
 
 .. automodule:: colouredconsolehandler
    :members:
-   
+
 Indices and tables
 ==================
 
