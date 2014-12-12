@@ -82,7 +82,14 @@ def get_config(config_file):
 
 
 def get_machine_uuid():
-    """This function uses subprocess to get node uuid and cached it for future use
+    """This function calls xenstore-read name to retrieve the system's UUID.
+
+       The function will first retrieve the system's uptime and compare
+       the uptime with a cached value. Once a UUID has been retrieved,
+       it will be cached in .uuid.cache.
+
+       On subsequent calls, if the cached uptime is less than the current
+       system uptime, this function will return the cached uptime
 
       :returns: server uuid
                 None
