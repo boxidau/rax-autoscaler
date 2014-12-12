@@ -87,50 +87,11 @@ def is_node_master(scalingGroup):
 
     """
     masters = []
-    systemUUID = None
-    systemUUID_file = None
-    node_id = None
-    logger.debug('executing dmidecode to get system uuid')
-    try:
-        sysout = subprocess.Popen(['dmidecode', '-s', 'system-uuid'],
-                                  stdout=subprocess.PIPE)
-        systemUUID = sysout.communicate()[0]
-        systemUUID = systemUUID.strip()
-    except Exception, e:
-        logger.debug('Failed to execute dmidecode: %s' % str(e))
-        pass
-
-    if systemUUID is not None:
-        logger.debug("Checking if file '%s' exists " % systemUUID)
-        systemUUID_file = common.check_file(systemUUID)
-        if systemUUID_file is not None:
-            logger.debug("Reading file '%s' to get node id" % systemUUID_file)
-            try:
-                rfh = open(systemUUID_file, 'r').read()
-                node_id = rfh.strip()
-                logger.info("Using machine uuid available in '%s'"
-                            % systemUUID_file)
-            except:
-                logger.warning("Unable to read a file '%s' in '%s'"
-                               % (systemUUID, '/etc/rax-autoscaler'))
-                pass
+    node_id = common.get_machine_uuid()
 
     if node_id is None:
-        logger.info('Launching xenstore query to get machine uuid')
-        node_id = common.get_machine_uuid()
-
-        if systemUUID_file is None and systemUUID is not None:
-            logger.debug("Creating file '%s' to save node id"
-                         % systemUUID_file)
-            try:
-                newFile = '/etc/rax-autoscaler/' + systemUUID
-                wfh = open(newFile, 'w')
-                wfh.write(node_id)
-                wfh.close()
-            except Exception, e:
-                logger.warning("Unable to create a file '%s': '%s'"
-                               % (systemUUID, str(e)))
-                pass
+        logger.error('Failed to get server uuid')
+        return 1
 
     sg_state = scalingGroup.get_state()
     if len(sg_state['active']) == 1:
