@@ -95,6 +95,7 @@ def get_machine_uuid():
     uuid = None
     cache_content = [None] * 2
 
+    # Getting machine uptime.
     try:
         uptime_file = open('/proc/uptime')
         contents = uptime_file.read().split()
@@ -108,7 +109,9 @@ def get_machine_uuid():
     if server_uptime is None:
         logger.debug("Failed to get server uptime")
     else:
+        logger.debug("server uptime: %s" % server_uptime)
         logger.debug("Checking if cache file '%s' already exists" % cache_file)
+        # Check if cache file already exists.
         cache_file = check_file(cache_file)
         if cache_file is not None:
             logger.info("Getting uptime and node id from cache file")
@@ -121,11 +124,14 @@ def get_machine_uuid():
                                % (cache_file, '/etc/rax-autoscaler'))
                 pass
 
+            # Cache file should contain two lines, uptime & uuid.
             if (not cache_content[0] or cache_content[0] is None
                     or not cache_content[1] or cache_content[1] is None):
                 logger.warning("Cache file is corrupted, failed to"
                                " read the content")
             else:
+                # Compare uptime in cache file with server uptime.
+                # Line one of cache file expected to be uptime in sec.
                 try:
                     if int(cache_content[0]) < int(server_uptime):
                         uuid = cache_content[1]
