@@ -84,12 +84,14 @@ def get_config(config_file):
 def get_machine_uuid():
     """This function calls xenstore-read name to retrieve the system's UUID.
 
-       The function will first retrieve the system's uptime and compare
-       the uptime with a cached value. Once a UUID has been retrieved,
-       it will be cached in .uuid.cache.
+       It will first retrieve the system's uptime and cached it to .uuid.cache
+       file along with uuid in, /etc./rax-autoscaler path if it does not exist
+       than in current working directory.
 
        On subsequent calls, if the cached uptime is less than the current
-       system uptime, this function will return the cached uptime
+       system uptime, this function will return the cached uptime otherwise
+       it will make another xenstore-read name call to retrieve uuid and update
+       the cache file.
 
       :returns: server uuid
                 None
