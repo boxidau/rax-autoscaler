@@ -157,7 +157,9 @@ class CommonTest(unittest.TestCase):
     @patch('raxas.common.check_file', return_value='.uuid.cache')
     @patch('raxas.common.get_server_uptime', return_value=300)
     @patch('raxas.common.subprocess.Popen')
-    def test_get_machine_uuid_should_return_none_when_invalid_cache(self, subprocess_mock, uptime_mock, checkfile_mock, open_mock):
+    def test_get_machine_uuid_invalid_cache(self, subprocess_mock,
+                                            uptime_mock, checkfile_mock,
+                                            open_mock):
         current_uuid = str(uuid.uuid4())
         open_mock = mock_open(open_mock, read_data='300\ninvalid-uuid\n')
         subprocess_mock.return_value.communicate.\
