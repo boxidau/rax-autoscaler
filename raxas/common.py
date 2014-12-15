@@ -94,7 +94,7 @@ def get_server_uptime():
         with open('/proc/uptime', 'r') as uptime_file:
             contents = uptime_file.read().split()
 
-        server_uptime = str(int(float(contents[0])))
+        server_uptime = int(float(contents[0]))
     except Exception, e:
         logger.warning("Unable to get uptime")
         logger.debug('%s' % str(e))

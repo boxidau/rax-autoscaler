@@ -191,6 +191,10 @@ class CommonTest(unittest.TestCase):
                                                'should raise KeyError'),
                          None)
 
+    @patch('__builtin__.open', mock_open(read_data='961224.15 949857.43\n'))
+    def test_get_uptime(self):
+        self.assertEqual(common.get_server_uptime(), 961224)
+
     def test_get_user_value_from_args(self):
         sys.argv = ['/path/to/noserunner.py', '--os-username', 'test.user']
         args = parse_args()
