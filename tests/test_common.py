@@ -25,6 +25,7 @@ import sys
 import json
 import uuid
 import unittest
+import subprocess
 from mock import MagicMock, patch, mock_open, call
 
 from raxas import common
@@ -108,14 +109,66 @@ class CommonTest(unittest.TestCase):
             self.assertEqual(common.get_config('config.cfg'), None)
             open_mock.assert_called_once_with('config.cfg')
 
-    @patch('raxas.common.subprocess')
-    def test_get_machine_uuid(self, subprocess_mock):
+    @patch('__builtin__.open')
+    @patch('raxas.common.check_file', return_value=None)
+    @patch('raxas.common.get_server_uptime', return_value=300)
+    @patch('raxas.common.subprocess.Popen')
+    def test_get_machine_uuid_from_xenstore(self, subprocess_mock, uptime_mock,
+                                            checkfile_mock, open_mock):
+        open_mock = mock_open(open_mock)
+
         for i in xrange(0, 5):
             current_uuid = str(uuid.uuid4())
-            subprocess_mock.Popen.return_value.communicate.\
+            subprocess_mock.return_value.communicate.\
                 return_value = ['instance-%s\n' % current_uuid]
 
             self.assertEqual(common.get_machine_uuid(), current_uuid)
+
+            subprocess_mock.\
+                assert_called_once_with(['xenstore-read name'], shell=True,
+                                        stdout=subprocess.PIPE)
+            file_handle = open_mock()
+            self.assertEqual(file_handle.writelines.call_count, 1)
+            file_handle.writelines.assert_called_once_with(['300\n', '%s\n'
+                                                            % current_uuid])
+
+            subprocess_mock.reset_mock()
+            file_handle.writelines.reset_mock()
+
+    @patch('__builtin__.open')
+    @patch('raxas.common.check_file', return_value='.uuid.cache')
+    @patch('raxas.common.get_server_uptime', return_value=300)
+    @patch('raxas.common.subprocess.Popen')
+    def test_get_machine_uuid_from_cache(self, subprocess_mock, uptime_mock,
+                                         checkfile_mock, open_mock):
+        current_uuid = str(uuid.uuid4())
+        open_mock = mock_open(open_mock, read_data='300\n%s' % current_uuid)
+
+        self.assertEqual(common.get_machine_uuid(), current_uuid)
+
+        self.assertEqual(subprocess_mock.call_count, 0)
+        file_handle = open_mock()
+        file_handle.read.assert_called_once_with()
+        self.assertEqual(file_handle.write.call_count, 0)
+
+        file_handle.read.reset_mock()
+
+    @patch('__builtin__.open')
+    @patch('raxas.common.check_file', return_value='.uuid.cache')
+    @patch('raxas.common.get_server_uptime', return_value=300)
+    @patch('raxas.common.subprocess.Popen')
+    def test_get_machine_uuid_should_return_none_when_invalid_cache(self, subprocess_mock, uptime_mock, checkfile_mock, open_mock):
+        current_uuid = str(uuid.uuid4())
+        open_mock = mock_open(open_mock, read_data='300\ninvalid-uuid\n')
+        subprocess_mock.return_value.communicate.\
+            return_value = ['instance-%s\n' % current_uuid]
+
+        self.assertEqual(common.get_machine_uuid(), current_uuid)
+
+        self.assertEqual(subprocess_mock.call_count, 1)
+        file_handle = open_mock()
+        file_handle.read.assert_called_once_with()
+        self.assertEqual(file_handle.write.call_count, 0)
 
     def test_get_user_value_from_config(self):
         sys.argv = ['/path/to/noserunner.py']

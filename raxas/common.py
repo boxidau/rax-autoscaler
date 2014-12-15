@@ -30,6 +30,7 @@ import datetime
 import json
 import requests
 import logging
+from uuid import UUID
 
 
 def get_logger():
@@ -81,10 +82,31 @@ def get_config(config_file):
     return None
 
 
+def get_server_uptime():
+    """This function retrieves the server uptime from /proc/uptime
+
+    :return:server uptime
+            None
+    """
+    logger = get_logger()
+
+    try:
+        with open('/proc/uptime', 'r') as uptime_file:
+            contents = uptime_file.read().split()
+
+        server_uptime = str(int(float(contents[0])))
+    except Exception, e:
+        logger.warning("Unable to get uptime")
+        logger.debug('%s' % str(e))
+        return None
+
+    return server_uptime
+
+
 def get_machine_uuid():
     """This function calls xenstore-read name to retrieve the system's UUID.
 
-       It will first retrieve the system's uptime and cached it to .uuid.cache
+       It will first retrieve the system's uptime and cache it to .uuid.cache
        file along with uuid in, /etc./rax-autoscaler path if it does not exist
        than in current working directory.
 
@@ -98,22 +120,10 @@ def get_machine_uuid():
 
     """
     logger = get_logger()
-    server_uptime = None
-    cache_uptime = None
     cache_file = '.uuid.cache'
     uuid = None
-    cache_content = [None] * 2
 
-    # Getting machine uptime.
-    try:
-        uptime_file = open('/proc/uptime')
-        contents = uptime_file.read().split()
-        uptime_file.close()
-        server_uptime = str(int(float(contents[0])))
-    except Exception, e:
-        logger.warning("Unable to get uptime")
-        logger.debug('%s' % str(e))
-        pass
+    server_uptime = get_server_uptime()
 
     if server_uptime is None:
         logger.debug("Failed to get server uptime")
@@ -126,31 +136,20 @@ def get_machine_uuid():
             logger.info("Getting uptime and node id from cache file")
             cache_content = None
             try:
-                rfh = open(cache_file, 'r').read()
-                cache_content = rfh.split('\n')
+                with open(cache_file, 'r') as cache_handle:
+                    cache_content = cache_handle.read().split('\n')
             except:
                 logger.warning("Unable to read a file '%s' in '%s'"
                                % (cache_file, '/etc/rax-autoscaler'))
                 pass
 
-            # Cache file should contain two lines, uptime & uuid.
-            if (not cache_content[0] or cache_content[0] is None
-                    or not cache_content[1] or cache_content[1] is None):
-                logger.warning("Cache file is corrupted, failed to"
-                               " read the content")
-            else:
+            try:
                 # Compare uptime in cache file with server uptime.
                 # Line one of cache file expected to be uptime in sec.
-                try:
-                    if int(cache_content[0]) < int(server_uptime):
-                        uuid = cache_content[1]
-                    else:
-                        logger.warning("Invalid uptime found in cache file")
-                        logger.debug("uptime: %s cache uptime: %s"
-                                     % (server_uptime, cache_content[0]))
-                except:
-                    logger.warning("Invalid content found in cache file")
-                    pass
+                if int(cache_content[0]) <= int(server_uptime):
+                    uuid = str(UUID(cache_content[1]))
+            except (ValueError, IndexError) as error:
+                logger.warning("Cache file is corrupted:\n%s" % error.args)
 
         if uuid is None:
             logger.info('Launching xenstore query to get server uuid')
@@ -158,30 +157,26 @@ def get_machine_uuid():
                 name = subprocess.Popen(['xenstore-read name'], shell=True,
                                         stdout=subprocess.PIPE
                                         ).communicate()[0]
-                id = name.strip()
-                uuid = id[9:]
+                uuid = name.strip()[9:]
             except Exception, e:
                 logger.error("Error: " + str(e))
                 return None
 
-            if server_uptime is not None:
-                cache_file = '.uuid.cache'
-                # Check if file exists in cwd
-                if os.path.isfile(cache_file) is False:
-                    if os.path.isdir('/etc/rax-autoscaler') is True:
-                        cache_file = '/etc/rax-autoscaler/.uuid.cache'
+            cache_file = '.uuid.cache'
+            # Check if file exists in cwd
+            if os.path.isfile(cache_file) is False:
+                if os.path.isdir('/etc/rax-autoscaler') is True:
+                    cache_file = '/etc/rax-autoscaler/.uuid.cache'
 
-                logger.info("Creating cache file '%s'" % cache_file)
-                try:
-                    wfh = open(cache_file, 'w')
-                    wfh.write(server_uptime)
-                    wfh.write('\n')
-                    wfh.write(uuid)
-                    wfh.close()
-                except Exception, e:
-                    logger.warning("Unable to create a file '%s': '%s'"
-                                   % (cache_file, str(e)))
-                    pass
+            logger.info("Creating cache file '%s'" % cache_file)
+            try:
+                with open(cache_file, 'w+') as cache_handle:
+                    lines = ['%s\n' % line for line in [server_uptime, uuid]]
+                    cache_handle.writelines(lines)
+            except Exception, e:
+                logger.warning("Unable to create a file '%s': '%s'"
+                               % (cache_file, str(e)))
+                pass
 
     return uuid
 
