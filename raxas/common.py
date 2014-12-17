@@ -293,3 +293,30 @@ def webhook_call(config_data, group, policy, key):
             logger.warning(str(e))
 
     return None
+
+def exit_with_error(msg):
+    """This function prints error message and exit with error.
+
+    :param msg: error message
+    :type name: str
+    :returns: 1 (int) -- the return code
+
+    """
+    logger = get_logger()
+
+    if msg is None:
+        try:
+            log_file = logger.root.handlers[0].baseFilename
+            logger.info('completed with an error: %s' % log_file)
+        except:
+            print ('(info) rax-autoscale completed with an error')
+    else:
+        try:
+            logger.error(msg)
+            log_file = logger.root.handlers[0].baseFilename
+            logger.info('completed with an error: %s' % log_file)
+        except:
+            print ('(error) %s' % msg)
+            print ('(info) rax-autoscale completed with an error')
+
+    exit(1)

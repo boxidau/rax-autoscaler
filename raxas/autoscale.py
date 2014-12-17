@@ -50,32 +50,6 @@ else:
     logger = logging.getLogger(__name__)
 
 
-def exit_with_error(msg):
-    """This function prints error message and exit with error.
-
-    :param msg: error message
-    :type name: str
-    :returns: 1 (int) -- the return code
-
-    """
-    if msg is None:
-        try:
-            log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: %s' % log_file)
-        except:
-            print ('(info) rax-autoscale completed with an error')
-    else:
-        try:
-            logger.error(msg)
-            log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: %s' % log_file)
-        except:
-            print ('(error) %s' % msg)
-            print ('(info) rax-autoscale completed with an error')
-
-    exit(1)
-
-
 def is_node_master(scalingGroup):
     """This function checks scaling group state and determines if node is a master.
 
@@ -317,7 +291,7 @@ def main():
     # CONFIG.ini
     config_file = common.check_file(args['config_file'])
     if config_file is None:
-        exit_with_error("Either file is missing or is not readable: '%s'"
+        common.exit_with_error("Either file is missing or is not readable: '%s'"
                         % args['config_file'])
 
     # Show Version
@@ -330,7 +304,7 @@ def main():
     # Get data from config.json
     config_data = common.get_config(config_file)
     if config_data is None:
-        exit_with_error('Failed to read config file: ' + config_file)
+        common.exit_with_error('Failed to read config file: ' + config_file)
 
     # Get group
     if not args['as_group']:
@@ -350,24 +324,24 @@ def main():
                 logger.debug("Failed to get hostname: %s" % str(e))
                 logger.warning("Multiple group found in config file, "
                                "please use 'as-group' option")
-                exit_with_error('Unable to identify targeted group')
+                common.exit_with_error('Unable to identify targeted group')
     else:
         try:
             group_value = config_data["autoscale_groups"][args['as_group']]
             as_group = args['as_group']
         except:
-            exit_with_error("Unable to find group '" + args['as_group'] +
+            common.exit_with_error("Unable to find group '" + args['as_group'] +
                             "' in " + config_file)
 
     username = common.get_user_value(args, config_data, 'os_username')
     if username is None:
-        exit_with_error(None)
+        common.exit_with_error(None)
     api_key = common.get_user_value(args, config_data, 'os_password')
     if api_key is None:
-        exit_with_error(None)
+        common.exit_with_error(None)
     region = common.get_user_value(args, config_data, 'os_region_name')
     if region is None:
-        exit_with_error(None)
+        common.exit_with_error(None)
 
     session = Auth(username, api_key, region)
 
@@ -378,13 +352,13 @@ def main():
             if hasattr(logger.root.handlers[0], 'baseFilename'):
                 log_file = logger.root.handlers[0].baseFilename
             if log_file is None:
-                logger.info('completed successfull')
+                logger.info('completed successfully')
             else:
                 logger.info('completed successfully: %s' % log_file)
         else:
-            exit_with_error(None)
+            common.exit_with_error(None)
     else:
-        exit_with_error('Authentication failed')
+        common.exit_with_error('Authentication failed')
 
 
 if __name__ == '__main__':
