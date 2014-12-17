@@ -111,7 +111,6 @@ class AuthTest(unittest.TestCase):
 
         self.assertTrue(auth.authenticate())
 
-
     @patch.object(Auth, 'load_token', return_value=False)
     @patch.object(Auth, 'authenticate_credentials', return_value=True)
     def test_authenticate_cred_flow(self, mock_auth, mock_load):
@@ -153,11 +152,13 @@ class AuthTest(unittest.TestCase):
         auth = Auth(self.username, self.api_key, self.region)
         status = auth.status()
 
-        test_status = ("pyrax reports -- "
-                "username: %s, apikey: %s, region: %s, token: %s, "
-                "tenant_id: %s" %
-                (self.username, self.api_key, self.region, self.token_file_contents,
-                 self.tenant_id))
+        test_status = ('pyrax reports -- '
+                       'username: {0:s}, apikey: {1:s}, '
+                       'region: {2:s}, token: {3:s}, '
+                       'tenant_id: {0:s}'
+                       .format(self.username, self.api_key, self.region,
+                               self.token_file_contents,
+                               self.tenant_id))
 
         self.assertIsInstance(status, StringType)
         self.assertEqual(status, test_status)
@@ -172,7 +173,8 @@ class AuthTest(unittest.TestCase):
         self.assertTrue(mock_os.called)
 
     def test_tokenfilename(self):
-        auth = Auth(self.username, self.api_key, self.region, token_filename=self.token_file)
+        auth = Auth(self.username, self.api_key, self.region,
+                    token_filename=self.token_file)
         self.assertEqual(auth.token_filename, self.token_file)
 
     @patch('pyrax.identity', create=True)
@@ -194,4 +196,3 @@ class AuthTest(unittest.TestCase):
 
         self.assertTrue(mock_identity.unauthenticate.called)
         self.assertTrue(mock_os.called)
-
