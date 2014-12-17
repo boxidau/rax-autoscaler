@@ -155,12 +155,11 @@ class AuthTest(unittest.TestCase):
         test_status = ('pyrax reports -- '
                        'username: {0:s}, apikey: {1:s}, '
                        'region: {2:s}, token: {3:s}, '
-                       'tenant_id: {0:s}'
+                       'tenant_id: {4:s}'
                        .format(self.username, self.api_key, self.region,
                                self.token_file_contents,
                                self.tenant_id))
 
-        self.assertIsInstance(status, StringType)
         self.assertEqual(status, test_status)
 
     @patch('pyrax.identity', create=True)
