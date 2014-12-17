@@ -11,7 +11,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -107,8 +107,9 @@ def get_scaling_group(group, config_data):
     else:
         logger.info('Server(s) in scaling group: %s' %
                     ', '.join(['(%s, %s)'
-                              % (cloudmonitor.get_server_name(s_id), s_id)
-                              for s_id in scalingGroup.get_state()['active']]))
+                               % (cloudmonitor.get_server_name(s_id), s_id)
+                               for s_id in
+                               scalingGroup.get_state()['active']]))
     logger.info('Current Active Servers: ' +
                 str(scalingGroup.get_state()['active_capacity']))
     return scalingGroup
@@ -175,11 +176,11 @@ def autoscale(group, config_data, args):
             for check in ent_checks:
                 if check.type == check_type:
                     data = check.get_metric_data_points(metric_name,
-                                                        int(time.time())-300,
+                                                        int(time.time()) - 300,
                                                         int(time.time()),
                                                         points=2)
                     if len(data) > 0:
-                        point = len(data)-1
+                        point = len(data) - 1
                         logger.info('Found metric for: ' + ent.name +
                                     ', value: ' + str(data[point]['average']))
                         results.append(float(data[point]['average']))
@@ -195,7 +196,7 @@ def autoscale(group, config_data, args):
         logger.error('No data available')
         return 1
     else:
-        average = sum(results)/len(results)
+        average = sum(results) / len(results)
         scale_up_threshold = common.get_group_value(config_data, group,
                                                     'scale_up_threshold')
         if scale_up_threshold is None:
@@ -291,8 +292,8 @@ def main():
     # CONFIG.ini
     config_file = common.check_file(args['config_file'])
     if config_file is None:
-        common.exit_with_error("Either file is missing or is not readable: '%s'"
-                        % args['config_file'])
+        common.exit_with_error("Either file is missing or is "
+                               "not readable: '%s'" % args['config_file'])
 
     # Show Version
     logger.info(return_version())
@@ -330,8 +331,9 @@ def main():
             group_value = config_data["autoscale_groups"][args['as_group']]
             as_group = args['as_group']
         except:
-            common.exit_with_error("Unable to find group '" + args['as_group'] +
-                            "' in " + config_file)
+            common.exit_with_error("Unable to find group '"
+                                   + args['as_group'] +
+                                   "' in " + config_file)
 
     username = common.get_user_value(args, config_data, 'os_username')
     if username is None:

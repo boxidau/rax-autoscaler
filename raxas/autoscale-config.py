@@ -9,8 +9,6 @@ from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 from version import return_version
 
-
-
 # CHECK logging.conf
 logging_config = common.check_file('logging.conf')
 
@@ -33,7 +31,8 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--container', required=False,
-                        help='The container that the config file is stored in.')
+                        help='The container that the '
+                             'config file is stored in.')
     parser.add_argument('--os-username', required=False,
                         help='Rackspace Cloud user name')
     parser.add_argument('--os-password', required=False,
@@ -53,7 +52,7 @@ def parse_args():
     return args
 
 
-def downloadConfigPrivate(config_data, args):
+def download_config_private(config_data, args):
     """This function downloads the autoscale
     configuration file from a private cloud files container.
 
@@ -68,9 +67,8 @@ def downloadConfigPrivate(config_data, args):
     file_name = args['config_file']
     file_directory = args['config_directory']
 
-
     if container_name is None:
-        common.exit_with_error(None)
+        common.exit_with_error('No container name defined')
 
     try:
         container = cf.get_container(container_name)
@@ -96,7 +94,7 @@ def main():
         logger.info('No config file found, '
                     'checking to see if we have credentials.')
         if args['os_username'] is None and args['os_password'] is None:
-            common.exit_with_error("If there is no config file you"
+            common.exit_with_error("If there is no config file you "
                                    "must specify a username and password.")
     # Show Version
     logger.info(return_version())
@@ -109,28 +107,25 @@ def main():
 
     username = common.get_user_value(args, config_data, 'os_username')
     if username is None:
-        common.exit_with_error(None)
+        common.exit_with_error('No os_username defined.')
     api_key = common.get_user_value(args, config_data, 'os_password')
     if api_key is None:
-        common.exit_with_error(None)
+        common.exit_with_error('No os_password defined.')
     region = common.get_user_value(args, config_data, 'os_region_name')
     if region is None:
-        common.exit_with_error(None)
+        common.exit_with_error('No os_region_name defined.')
 
     session = Auth(username, api_key, region)
 
     if session.authenticate() is True:
-        rv = downloadConfigPrivate(config_data, args)
-        if rv is None:
-            log_file = None
-            if hasattr(logger.root.handlers[0], 'baseFilename'):
-                log_file = logger.root.handlers[0].baseFilename
-            if log_file is None:
-                logger.info('completed successfully')
-            else:
-                logger.info('completed successfully: %s' % log_file)
+        download_config_private(config_data, args)
+        log_file = None
+        if hasattr(logger.root.handlers[0], 'baseFilename'):
+            log_file = logger.root.handlers[0].baseFilename
+        if log_file is None:
+            logger.info('completed successfully')
         else:
-            common.exit_with_error(None)
+            logger.info('completed successfully: %s' % log_file)
     else:
         common.exit_with_error('Authentication failed')
 

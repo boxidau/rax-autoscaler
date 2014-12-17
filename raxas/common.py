@@ -294,6 +294,7 @@ def webhook_call(config_data, group, policy, key):
 
     return None
 
+
 def exit_with_error(msg):
     """This function prints error message and exit with error.
 
