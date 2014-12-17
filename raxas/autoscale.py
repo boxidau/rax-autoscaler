@@ -11,7 +11,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,32 +48,6 @@ else:
     logging.handlers.ColouredConsoleHandler = ColouredConsoleHandler
     logging.config.fileConfig(logging_conf_file)
     logger = logging.getLogger(__name__)
-
-
-def exit_with_error(msg):
-    """This function prints error message and exit with error.
-
-    :param msg: error message
-    :type name: str
-    :returns: 1 (int) -- the return code
-
-    """
-    if msg is None:
-        try:
-            log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: %s' % log_file)
-        except:
-            print ('(info) rax-autoscale completed with an error')
-    else:
-        try:
-            logger.error(msg)
-            log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: %s' % log_file)
-        except:
-            print ('(error) %s' % msg)
-            print ('(info) rax-autoscale completed with an error')
-
-    exit(1)
 
 
 def is_node_master(scalingGroup):
@@ -133,8 +107,9 @@ def get_scaling_group(group, config_data):
     else:
         logger.info('Server(s) in scaling group: %s' %
                     ', '.join(['(%s, %s)'
-                              % (cloudmonitor.get_server_name(s_id), s_id)
-                              for s_id in scalingGroup.get_state()['active']]))
+                               % (cloudmonitor.get_server_name(s_id), s_id)
+                               for s_id in
+                               scalingGroup.get_state()['active']]))
     logger.info('Current Active Servers: ' +
                 str(scalingGroup.get_state()['active_capacity']))
     return scalingGroup
@@ -201,11 +176,11 @@ def autoscale(group, config_data, args):
             for check in ent_checks:
                 if check.type == check_type:
                     data = check.get_metric_data_points(metric_name,
-                                                        int(time.time())-300,
+                                                        int(time.time()) - 300,
                                                         int(time.time()),
                                                         points=2)
                     if len(data) > 0:
-                        point = len(data)-1
+                        point = len(data) - 1
                         logger.info('Found metric for: ' + ent.name +
                                     ', value: ' + str(data[point]['average']))
                         results.append(float(data[point]['average']))
@@ -221,7 +196,7 @@ def autoscale(group, config_data, args):
         logger.error('No data available')
         return 1
     else:
-        average = sum(results)/len(results)
+        average = sum(results) / len(results)
         scale_up_threshold = common.get_group_value(config_data, group,
                                                     'scale_up_threshold')
         if scale_up_threshold is None:
@@ -317,8 +292,8 @@ def main():
     # CONFIG.ini
     config_file = common.check_file(args['config_file'])
     if config_file is None:
-        exit_with_error("Either file is missing or is not readable: '%s'"
-                        % args['config_file'])
+        common.exit_with_error("Either file is missing or is "
+                               "not readable: '%s'" % args['config_file'])
 
     # Show Version
     logger.info(return_version())
@@ -330,7 +305,7 @@ def main():
     # Get data from config.json
     config_data = common.get_config(config_file)
     if config_data is None:
-        exit_with_error('Failed to read config file: ' + config_file)
+        common.exit_with_error('Failed to read config file: ' + config_file)
 
     # Get group
     if not args['as_group']:
@@ -350,24 +325,25 @@ def main():
                 logger.debug("Failed to get hostname: %s" % str(e))
                 logger.warning("Multiple group found in config file, "
                                "please use 'as-group' option")
-                exit_with_error('Unable to identify targeted group')
+                common.exit_with_error('Unable to identify targeted group')
     else:
         try:
             group_value = config_data["autoscale_groups"][args['as_group']]
             as_group = args['as_group']
         except:
-            exit_with_error("Unable to find group '" + args['as_group'] +
-                            "' in " + config_file)
+            common.exit_with_error("Unable to find group '"
+                                   + args['as_group'] +
+                                   "' in " + config_file)
 
     username = common.get_user_value(args, config_data, 'os_username')
     if username is None:
-        exit_with_error(None)
+        common.exit_with_error(None)
     api_key = common.get_user_value(args, config_data, 'os_password')
     if api_key is None:
-        exit_with_error(None)
+        common.exit_with_error(None)
     region = common.get_user_value(args, config_data, 'os_region_name')
     if region is None:
-        exit_with_error(None)
+        common.exit_with_error(None)
 
     session = Auth(username, api_key, region)
 
@@ -378,13 +354,13 @@ def main():
             if hasattr(logger.root.handlers[0], 'baseFilename'):
                 log_file = logger.root.handlers[0].baseFilename
             if log_file is None:
-                logger.info('completed successfull')
+                logger.info('completed successfully')
             else:
                 logger.info('completed successfully: %s' % log_file)
         else:
-            exit_with_error(None)
+            common.exit_with_error(None)
     else:
-        exit_with_error('Authentication failed')
+        common.exit_with_error('Authentication failed')
 
 
 if __name__ == '__main__':
