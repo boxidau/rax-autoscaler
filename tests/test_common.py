@@ -23,11 +23,11 @@ from __future__ import with_statement
 import os
 import sys
 import json
-import uuid
 import unittest
-import subprocess
 from mock import MagicMock, patch, mock_open, call
 
+import pyrax
+import pyrax.fakes
 from raxas import common
 from raxas.autoscale import parse_args
 
@@ -110,67 +110,74 @@ class CommonTest(unittest.TestCase):
             open_mock.assert_called_once_with('config.cfg')
 
     @patch('__builtin__.open')
-    @patch('raxas.common.check_file', return_value=None)
-    @patch('raxas.common.get_server_uptime', return_value=300)
-    @patch('raxas.common.subprocess.Popen')
-    def test_get_machine_uuid_from_xenstore(self, subprocess_mock, uptime_mock,
-                                            checkfile_mock, open_mock):
+    @patch('os.path.isfile', return_value=True)
+    def test_get_machine_uuid_from_cache(self, isfile_mock, open_mock):
+        open_mock = mock_open(open_mock, read_data='0a6ebf42-d4ff-'
+                                                   '4075-9425-ce50dda33955\n')
+        file_handle = open_mock()
+        file_handle.readline.return_value = '0a6ebf42-d4ff-' \
+                                            '4075-9425-ce50dda33955\n'
+
+        self.assertEqual(common.read_uuid_cache(), '0a6ebf42-d4ff-'
+                                                   '4075-9425-ce50dda33955')
+
+    @patch('os.path.isfile', return_value=False)
+    def test_get_uuid_returns_none_when_missing_cache(self, isfile_mock):
+        self.assertEqual(common.read_uuid_cache(), None)
+
+    @patch('__builtin__.open')
+    @patch('os.path.isfile', return_value=True)
+    def test_get_uuid_returns_none_with_empty_cache(self, isfile_mock,
+                                                    open_mock):
         open_mock = mock_open(open_mock)
+        file_handle = open_mock()
+        file_handle.readline.return_value = ''
 
-        for i in xrange(0, 5):
-            current_uuid = str(uuid.uuid4())
-            subprocess_mock.return_value.communicate.\
-                return_value = ['instance-%s\n' % current_uuid]
-
-            self.assertEqual(common.get_machine_uuid(), current_uuid)
-
-            subprocess_mock.\
-                assert_called_once_with(['xenstore-read name'], shell=True,
-                                        stdout=subprocess.PIPE)
-            file_handle = open_mock()
-            self.assertEqual(file_handle.writelines.call_count, 1)
-            file_handle.writelines.assert_called_once_with(['300\n', '%s\n'
-                                                            % current_uuid])
-
-            subprocess_mock.reset_mock()
-            file_handle.writelines.reset_mock()
+        self.assertEqual(common.read_uuid_cache(), None)
 
     @patch('__builtin__.open')
-    @patch('raxas.common.check_file', return_value='.uuid.cache')
-    @patch('raxas.common.get_server_uptime', return_value=300)
-    @patch('raxas.common.subprocess.Popen')
-    def test_get_machine_uuid_from_cache(self, subprocess_mock, uptime_mock,
-                                         checkfile_mock, open_mock):
-        current_uuid = str(uuid.uuid4())
-        open_mock = mock_open(open_mock, read_data='300\n%s' % current_uuid)
-
-        self.assertEqual(common.get_machine_uuid(), current_uuid)
-
-        self.assertEqual(subprocess_mock.call_count, 0)
+    @patch('os.path.isfile', return_value=True)
+    def test_get_uuid_returns_none_with_empty_datastore(self, isfile_mock,
+                                                        open_mock):
+        open_mock = mock_open(open_mock, read_data='iid-datasource-none\n')
         file_handle = open_mock()
-        file_handle.read.assert_called_once_with()
-        self.assertEqual(file_handle.write.call_count, 0)
+        file_handle.readline.return_value = 'iid-datasource-none\n'
 
-        file_handle.read.reset_mock()
+        self.assertEqual(common.read_uuid_cache(), None)
 
     @patch('__builtin__.open')
-    @patch('raxas.common.check_file', return_value='.uuid.cache')
-    @patch('raxas.common.get_server_uptime', return_value=300)
-    @patch('raxas.common.subprocess.Popen')
-    def test_get_machine_uuid_invalid_cache(self, subprocess_mock,
-                                            uptime_mock, checkfile_mock,
-                                            open_mock):
-        current_uuid = str(uuid.uuid4())
-        open_mock = mock_open(open_mock, read_data='300\ninvalid-uuid\n')
-        subprocess_mock.return_value.communicate.\
-            return_value = ['instance-%s\n' % current_uuid]
+    def test_write_uuid_cache(self, open_mock):
+        open_mock = mock_open(open_mock)
+        common.write_uuid_cache('0a6ebf42-d4ff-4075-9425-ce50dda33955')
 
-        self.assertEqual(common.get_machine_uuid(), current_uuid)
-
-        self.assertEqual(subprocess_mock.call_count, 1)
         file_handle = open_mock()
-        file_handle.read.assert_called_once_with()
-        self.assertEqual(file_handle.write.call_count, 0)
+        self.assertEqual(file_handle.write.call_count, 1)
+        file_handle.write.assert_called_once_with('0a6ebf42-d4ff-4075-9425-'
+                                                  'ce50dda33955\n')
+
+    @patch('raxas.common.read_uuid_cache', return_value=None)
+    @patch('raxas.common.write_uuid_cache')
+    @patch('netifaces.interfaces')
+    @patch('netifaces.ifaddresses')
+    @patch('pyrax.autoscale')
+    @patch('pyrax.cloudservers')
+    def test_get_machine_uuid(self, cloud_servers_mock, autoscale_mock,
+                              ifaddr_mock, interfaces_mock, write_uuid_mock,
+                              read_uuid_mock):
+
+        uuid = 'eb8f2464-17a4-4796-a1ba-ab635ad287b9'
+        ifaddr_mock.return_value = {2: [{'addr': '119.9.94.249'}]}
+        interfaces_mock.return_value = ['eth0']
+        autoscale_mock.ScalingGroup.get_state.return_value = {'active': [uuid]}
+
+        get_mock = cloud_servers_mock.servers.get.return_value
+        get_mock.networks.values.return_value = \
+            [['119.9.94.249', '2401:1800:7800:102:be76:4eff:fe1c:1945'],
+             ['10.176.68.154']]
+        get_mock.id = uuid
+
+        self.assertEqual(common.get_machine_uuid(autoscale_mock.ScalingGroup),
+                         uuid)
 
     def test_get_user_value_from_config(self):
         sys.argv = ['/path/to/noserunner.py']
@@ -190,18 +197,6 @@ class CommonTest(unittest.TestCase):
                                                json.loads(self._config_json),
                                                'should raise KeyError'),
                          None)
-
-    @patch('__builtin__.open', mock_open(read_data='961224.15 949857.43\n'))
-    def test_get_uptime(self):
-        self.assertEqual(common.get_server_uptime(), 961224)
-
-    def test_get_user_value_from_args(self):
-        sys.argv = ['/path/to/noserunner.py', '--os-username', 'test.user']
-        args = parse_args()
-
-        self.assertEqual(
-            common.get_user_value(args, json.loads(self._config_json),
-                                  'os_username'), 'test.user')
 
     def test_get_group_value(self):
         config = json.loads(self._config_json)

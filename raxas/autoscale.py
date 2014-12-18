@@ -61,7 +61,7 @@ def is_node_master(scalingGroup):
 
     """
     masters = []
-    node_id = common.get_machine_uuid()
+    node_id = common.get_machine_uuid(scalingGroup)
 
     if node_id is None:
         logger.error('Failed to get server uuid')

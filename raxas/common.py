@@ -31,6 +31,7 @@ import json
 import requests
 import logging
 from uuid import UUID
+import netifaces
 
 
 def get_logger():
@@ -82,103 +83,107 @@ def get_config(config_file):
     return None
 
 
-def get_server_uptime():
-    """This function retrieves the server uptime from /proc/uptime
+def read_uuid_cache():
+    logger = get_logger()
 
-    :return:server uptime
-            None
-    """
+    # we're storing files in /dev/shm/ to ensure the cache is deleted on reboot
+    uuid_files = ['/dev/shm/.raxas-uuid.cache',
+                  # instance-id is populated with the uuid if the server was
+                  # spun up with config_drive set to True
+                  '/var/lib/cloud/data/instance-id']
+
+    if sys.platform in ['win32', 'cygwin']:
+        # Windows doesn't have a built in equivalent to /dev/shm so we'll
+        # disable file caching for now to ensure we don't have a stale cache
+        # if an image is taken of the servers running in the autoscale group
+        logger.info('no uuid caching for windows, moving on...')
+        return None
+
+    for file_path in uuid_files:
+        if not os.path.isfile(file_path):
+            continue
+
+        with open(file_path, 'r') as cache_file:
+            line = cache_file.readline().strip()
+            if line == 'iid-datasource-none':
+                # This happens if the server was spun up without config_drive
+                # set to True
+                logger.info('cloud-init datastore does not contain uuid')
+                continue
+
+            try:
+                # I'm creating a UUID object from the contents of the cache
+                # to verify it's a valid UUID. ValueError is thrown if invalid
+                uuid = UUID(line)
+                return str(uuid)
+            except ValueError:
+                logger.info('invalid uuid found in %s : %s'
+                            % (file_path, line))
+                continue
+
+    return None
+
+
+def write_uuid_cache(uuid):
     logger = get_logger()
 
     try:
-        with open('/proc/uptime', 'r') as uptime_file:
-            contents = uptime_file.read().split()
-
-        server_uptime = int(float(contents[0]))
-    except Exception, e:
-        logger.warning("Unable to get uptime")
-        logger.debug('%s' % str(e))
-        return None
-
-    return server_uptime
+        with open('/dev/shm/.raxas-uuid.cache', 'w+') as cache_file:
+            logger.info('updating uuid cache /dev/shm/.raxas-uuid.cache')
+            cache_file.write('%s\n' % uuid)
+    except IOError as error:
+        logger.error('unable to write uuid cache file:%s' % error.args)
 
 
-def get_machine_uuid():
-    """This function calls xenstore-read name to retrieve the system's UUID.
+def get_machine_uuid(scaling_group):
+    """This function will search for the server's UUID and return it.
 
-       It will first retrieve the system's uptime and cache it to .uuid.cache
-       file along with uuid in, /etc./rax-autoscaler path if it does not exist
-       than in current working directory.
+    First it searches in a rax-autoscaler cache, followed by cloud-init cache.
+    If it cannot find a cached UUID, it will get the details of each server in
+    the scaling group in turn and attempt to match the local IP address with
+    that of the server object returned from the API
 
-       On subsequent calls, if the cached uptime is less than the current
-       system uptime, this function will return the cached uptime otherwise
-       it will make another xenstore-read name call to retrieve uuid and update
-       the cache file.
-
-      :returns: server uuid
-                None
-
+    :param scaling_group: The pyrax scaling group of the current group we
+                          are processing
+    :return: None if no UUID could be matched against a cache file or the API.
+             UUID as a string
     """
     logger = get_logger()
-    cache_file = '.uuid.cache'
-    uuid = None
 
-    server_uptime = get_server_uptime()
+    uuid = read_uuid_cache()
+    if uuid is not None:
+        logger.info('found server UUID from cache: %s' % uuid)
+        return uuid
 
-    if server_uptime is None:
-        logger.debug("Failed to get server uptime")
-    else:
-        logger.debug("server uptime: %s" % server_uptime)
-        logger.debug("Checking if cache file '%s' already exists" % cache_file)
-        # Check if cache file already exists.
-        cache_file = check_file(cache_file)
-        if cache_file is not None:
-            logger.info("Getting uptime and node id from cache file")
-            cache_content = None
-            try:
-                with open(cache_file, 'r') as cache_handle:
-                    cache_content = cache_handle.read().split('\n')
-            except:
-                logger.warning("Unable to read a file '%s' in '%s'"
-                               % (cache_file, '/etc/rax-autoscaler'))
-                pass
+    # if we didn't get anything from any cache files, we'll loop through the
+    # servers in the scaling group, get the server details and cross check the
+    # ip addresses against what's on *this* server
 
-            try:
-                # Compare uptime in cache file with server uptime.
-                # Line one of cache file expected to be uptime in sec.
-                if int(cache_content[0]) <= int(server_uptime):
-                    uuid = str(UUID(cache_content[1]))
-            except (ValueError, IndexError) as error:
-                logger.warning("Cache file is corrupted:\n%s" % error.args)
+    local_ips = []
+    for interface in netifaces.interfaces():
+        try:
+            for ip in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
+                if ip['addr'] != '127.0.0.1':
+                    local_ips.append(ip['addr'])
+        except KeyError:
+            continue
 
-        if uuid is None:
-            logger.info('Launching xenstore query to get server uuid')
-            try:
-                name = subprocess.Popen(['xenstore-read name'], shell=True,
-                                        stdout=subprocess.PIPE
-                                        ).communicate()[0]
-                uuid = name.strip()[9:]
-            except Exception, e:
-                logger.error("Error: " + str(e))
-                return None
+    active_servers = scaling_group.get_state()['active']
+    servers_api = pyrax.cloudservers
+    for active_uuid in active_servers:
+        server = servers_api.servers.get(active_uuid)
 
-            cache_file = '.uuid.cache'
-            # Check if file exists in cwd
-            if os.path.isfile(cache_file) is False:
-                if os.path.isdir('/etc/rax-autoscaler') is True:
-                    cache_file = '/etc/rax-autoscaler/.uuid.cache'
+        server_ips = [ip for network in server.networks.values()
+                      for ip in network]
+        matching_ips = set(server_ips).intersection(local_ips)
+        if len(matching_ips) > 0:
+            logger.info('found uuid from matching ip address: %s' % server.id)
+            write_uuid_cache(server.id)
+            return server.id
 
-            logger.info("Creating cache file '%s'" % cache_file)
-            try:
-                with open(cache_file, 'w+') as cache_handle:
-                    lines = ['%s\n' % line for line in [server_uptime, uuid]]
-                    cache_handle.writelines(lines)
-            except Exception, e:
-                logger.warning("Unable to create a file '%s': '%s'"
-                               % (cache_file, str(e)))
-                pass
-
-    return uuid
+    # only reached if we couldn't read from the cache file and couldn't find
+    # this server's ip address in the scaling group's active server list
+    return None
 
 
 def get_user_value(args, config, key):
