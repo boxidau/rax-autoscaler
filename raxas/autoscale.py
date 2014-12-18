@@ -341,7 +341,7 @@ def main():
     api_key = common.get_user_value(args, config_data, 'os_password')
     if api_key is None:
         common.exit_with_error(None)
-    region = common.get_user_value(args, config_data, 'os_region_name')
+    region = common.get_user_value(args, config_data, 'os_region_name').upper()
     if region is None:
         common.exit_with_error(None)
 
