@@ -17,6 +17,12 @@ source:
 	$(PYTHON) setup.py sdist
 	rm -rf rax_autoscaler.egg-info
 
+upload2container: source
+	date +"%y%m%d%H%M%S">dist/readme
+	cd dist && echo rax-autoscaler*>>readme
+	swift upload autoscale dist/rax-autoscaler*tar.gz dist/readme
+	swift upload autoscale dist/readme
+
 upload: source
 	$(PYTHON) setup.py sdist upload
 
