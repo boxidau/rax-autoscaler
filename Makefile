@@ -38,7 +38,7 @@ test:
 	nosetests -v
 
 check:
-	find . -name \*.py | grep -v 'conf.py' | xargs pep8
+	find . -name \*.py | grep -v 'conf.py' | xargs pep8 --max-line-length=100
 	# find . -name \*.py | grep -v "^test_" | xargs pylint --errors-only --reports=n
 	# pyntch
 	# pyflakes

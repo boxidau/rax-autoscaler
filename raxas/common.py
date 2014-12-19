@@ -275,14 +275,15 @@ def webhook_call(config_data, group, policy, key):
 
     try:
         group_config = config_data['autoscale_groups'][group]
+        plugin_config = get_plugin_config(config_data, group, 'raxmon')
         data = json.dumps({
             'group_id': group_config['group_id'],
             'scale_up_policy': group_config['scale_up_policy'],
             'scale_down_policy': group_config['scale_down_policy'],
-            'check_type': group_config['check_type'],
-            'metric_name': group_config['metric_name'],
-            'scale_up_threshold': group_config['scale_up_threshold'],
-            'scale_down_threshold': group_config['scale_down_threshold']
+            'check_type': plugin_config['check_type'],
+            'metric_name': plugin_config['metric_name'],
+            'scale_up_threshold': plugin_config['scale_up_threshold'],
+            'scale_down_threshold': plugin_config['scale_down_threshold']
         })
     except KeyError as error:
         logger.error('Cannot build webhook data. invalid key: %s' % error)
@@ -326,3 +327,116 @@ def exit_with_error(msg):
             print ('(info) rax-autoscale completed with an error')
 
     exit(1)
+
+
+def get_server(server_id):
+    """ It gets Cloud server object by server_id
+
+    """
+    cs = pyrax.cloudservers
+    try:
+        return filter(lambda s: s.id == server_id, [s for s in cs.list()])[0]
+    except:
+        logging.info('no cloud server with id: %s' % server_id)
+        return None
+
+
+def scaling_group_servers(sgid):
+    """ list servers' id in scaling group sgid
+
+    :param sgid: scaling group id
+    :type name: str
+
+    """
+    a = pyrax.autoscale
+    try:
+        sg = a.get(sgid)
+        return sg
+    except:
+        logging.error('Unable to find scaling group with id:%s' % sgid)
+        return
+
+
+def get_plugin_config(config, group, plugin):
+        """This function returns the plugin section associated with a autoscale_group
+
+        :type config: object
+          :param group: group name
+          :param plugin: plugin name
+          :param config: json configuration data
+          :returns: value associated with key
+
+        """
+        logger = get_logger()
+        try:
+            value = config['autoscale_groups'][group]['plugins'][plugin]
+            if value is not None:
+                return value
+        except KeyError:
+            logger.error("Error: unable to get plugin values for '" + plugin +
+                         "' from group '" + group + "'")
+
+        return None
+
+
+def get_scaling_group(group, config_data):
+    """This function checks and gets active servers in scaling group
+
+    :param group: group name
+    :param config_data: json configuration data
+    :returns: scalingGroup if server state is active else null
+
+    """
+
+    logger = get_logger()
+
+    group_id = get_group_value(config_data, group, 'group_id')
+    if group_id is None:
+        logger.error('Unable to get group_id from json file')
+        return
+
+    scalingGroup = scaling_group_servers(group_id)
+    if scalingGroup is None:
+        return
+    # Check active server(s) in scaling group
+    if len(scalingGroup.get_state()['active']) == 0:
+        return
+    else:
+        logger.info('Server(s) in scaling group: %s' %
+                    ', '.join(['(, %s)'
+                               % s_id
+                               for s_id in
+                               scalingGroup.get_state()['active']]))
+    logger.info('Current Active Servers: ' +
+                str(scalingGroup.get_state()['active_capacity']))
+    return scalingGroup
+
+
+def get_server_ipv4(server_id, _type='public'):
+    """ It gets public IP v4 server address
+
+    :param server_id: server id
+    :type name: str
+
+    """
+    server = get_server(server_id)
+    if server is None:
+        return None
+    try:
+        return [i for i in server.networks[_type] if is_ipv4(i)][0]
+    except KeyError:
+        msg = 'server (%s) has no network %s' % (server_id, _type)
+        logging.warning(msg)
+        return None
+
+
+def is_ipv4(address):
+    """It checks if address is valid IP v4
+
+    """
+    import socket
+    try:
+        socket.inet_aton(address)
+        return True
+    except socket.error:
+        return False
