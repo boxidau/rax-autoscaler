@@ -105,11 +105,15 @@ If the agent is not installed please read: [Install the Cloud Monitoring Agent](
 
 ## Contributing
 
-- Fork it
-- Create your feature branch (git checkout -b my-new-feature)
-- Commit your changes (git commit -am 'Add some feature')
-- Push to the branch (git push origin my-new-feature)
-- Create new Pull Request
+- Fork [rax-autoscaler](https://github.com/boxidau/rax-autoscaler) repository, and clone it on your laptop
+- Create *your feature* branch from *devel* branch: ```git checkout -b my-new-feature origin/devel```
+- Commit, comment, push to your fork on [GitHub](https://github.com), and create new *Pull Request*
+
+### Requirements
+
+You might want to install pip packages in your Python virtualenv:
+
+```pip install -r requirements-dev.txt```
 
 ## License
 
