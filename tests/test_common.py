@@ -35,40 +35,44 @@ from raxas.autoscale import parse_args
 class CommonTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         self._config_json = """
-        {
-            "auth": {
-                "os_username": "api_username",
-                "os_password": "api_key",
-                "os_region_name": "os_region_name"
+    {
+        "auth": {
+            "os_username": "api_username",
+            "os_password": "api_key",
+            "os_region_name": "os_region_name"
+    },
+    "autoscale_groups": {
+        "group0": {
+            "group_id": "group id",
+            "scale_up_policy": "scale up policy id",
+            "scale_down_policy": "scale down policy id",
+            "webhooks": {
+                "scale_up": {
+                    "pre": [
+                        "preup1",
+                        "preup2"
+                    ],
+                    "post": [
+                        "postup1"
+                    ]
+                },
+                "scale_down": {
+                    "pre": [
+                        "predwn1",
+                        "predwn2"
+                    ],
+                    "post": [
+                        "postdwn1"
+                    ]
+                }
             },
-            "autoscale_groups": {
-                "group0": {
-                    "group_id": "group id",
-                    "scale_up_policy": "scale up policy id",
-                    "scale_down_policy": "scale down policy id",
-                    "check_type": "agent.load_average",
-                    "check_config": {},
-                    "metric_name": "1m",
+            "plugins":{
+                "raxmon":{
                     "scale_up_threshold": 0.6,
                     "scale_down_threshold": 0.4,
-                    "webhooks": {
-                        "scale_up": {
-                            "pre": [
-                                "preup1",
-                                "preup2"
-                            ],
-                            "post": [
-                                "postup1"
-                            ]
-                        },
-                        "scale_down": {
-                            "pre": [
-                                "predwn1",
-                                "predwn2"
-                            ],
-                            "post": [
-                                "postdwn1"
-                            ]
+                    "check_config": {},
+                    "metric_name": "1m",
+                    "check_type": "agent.load_average"
                         }
                     }
                 }
@@ -205,8 +209,6 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(common.get_group_value(config, 'group0',
                                                 'scale_up_policy'),
                          'scale up policy id')
-        self.assertEqual(common.get_group_value(config, 'group0',
-                                                'check_config'), {})
 
         self.assertEqual(common.get_group_value(config, 'group0',
                                                 'should raise KeyError'), None)
