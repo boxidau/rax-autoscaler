@@ -17,7 +17,7 @@ pip install rax-autoscaler
 ```
 
 ### Configuration
-Edit config.json adding the following:
+Create ```config.json``` based on [config-template.json](https://github.com/boxidau/rax-autoscaler/blob/devel/config/config-template.json), and edit the following:
 - API username
 - API key
 - Region name
