@@ -29,9 +29,9 @@ import logging.config
 import random
 from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
-import cloudmonitor
 import subprocess
 from version import return_version
+from core_plugins.raxmon import Raxmon
 
 
 # CHECK logging.conf
@@ -85,36 +85,6 @@ def is_node_master(scalingGroup):
         return
 
 
-def get_scaling_group(group, config_data):
-    """This function checks and gets active servers in scaling group
-
-    :param group: group name
-    :param config_data: json configuration data
-    :returns: scalingGroup if server state is active else null
-
-    """
-    group_id = common.get_group_value(config_data, group, 'group_id')
-    if group_id is None:
-        logger.error('Unable to get group_id from json file')
-        return
-
-    scalingGroup = cloudmonitor.scaling_group_servers(group_id)
-    if scalingGroup is None:
-        return
-    # Check active server(s) in scaling group
-    if len(scalingGroup.get_state()['active']) == 0:
-        return
-    else:
-        logger.info('Server(s) in scaling group: %s' %
-                    ', '.join(['(%s, %s)'
-                               % (cloudmonitor.get_server_name(s_id), s_id)
-                               for s_id in
-                               scalingGroup.get_state()['active']]))
-    logger.info('Current Active Servers: ' +
-                str(scalingGroup.get_state()['active_capacity']))
-    return scalingGroup
-
-
 def autoscale(group, config_data, args):
     """This function executes scale up or scale down policy
 
@@ -125,18 +95,9 @@ def autoscale(group, config_data, args):
     """
     au = pyrax.autoscale
 
-    scalingGroup = get_scaling_group(group, config_data)
+    scalingGroup = common.get_scaling_group(group, config_data)
     if scalingGroup is None:
         return 1
-    check_type = common.get_group_value(config_data, group, 'check_type')
-    if check_type is None:
-        return 1
-    check_config = common.get_group_value(config_data, group, 'check_config')
-    if check_config is None:
-        return 1
-
-    for s_id in scalingGroup.get_state()['active']:
-        rv = cloudmonitor.add_cm_check(s_id, check_type, check_config)
 
     logger.info('Cluster Mode Enabled: %s' % str(args['cluster']))
 
@@ -149,68 +110,14 @@ def autoscale(group, config_data, args):
             # Cluster state unknown return error.
             return 1
 
-    # Gather cluster statistics
-    check_type = common.get_group_value(config_data, group, 'check_type')
-    if check_type is None:
-        check_type = 'agent.load_average'
+    monitor = Raxmon(scalingGroup,
+                     common.get_plugin_config(config_data, group, "raxmon"), args)
 
-    metric_name = common.get_group_value(config_data, group, 'metric_name')
-    if metric_name is None:
-        metric_name = '1m'
+    result = monitor.make_decision()
 
-    logger.info('Gathering Monitoring Data')
-
-    results = []
-    cm = pyrax.cloud_monitoring
-    # Get all CloudMonitoring entities on the account
-    entities = cm.list_entities()
-
-    # Shuffle entities so the sample uses different servers
-    entities = random.sample(entities, len(entities))
-
-    for ent in entities:
-        # Check if the entity is also in the scaling group
-        if ent.agent_id in scalingGroup.get_state()['active']:
-            ent_checks = ent.list_checks()
-            # Loop through checks to find checks of the correct type
-            for check in ent_checks:
-                if check.type == check_type:
-                    data = check.get_metric_data_points(metric_name,
-                                                        int(time.time()) - 300,
-                                                        int(time.time()),
-                                                        points=2)
-                    if len(data) > 0:
-                        point = len(data) - 1
-                        logger.info('Found metric for: ' + ent.name +
-                                    ', value: ' + str(data[point]['average']))
-                        results.append(float(data[point]['average']))
-                        break
-
-        # Restrict number of data points to save on API calls
-        if len(results) >= args['max_sample']:
-            logger.info('--max-sample value of ' + str(args['max_sample']) +
-                        ' reached, not gathering any more statistics')
-            break
-
-    if len(results) == 0:
-        logger.error('No data available')
-        return 1
-    else:
-        average = sum(results) / len(results)
-        scale_up_threshold = common.get_group_value(config_data, group,
-                                                    'scale_up_threshold')
-        if scale_up_threshold is None:
-            scale_up_threshold = 0.6
-
-    scale_down_threshold = common.get_group_value(config_data, group,
-                                                  'scale_down_threshold')
-    if scale_down_threshold is None:
-        scale_down_threshold = 0.4
-
-    logger.info('Cluster average for ' + check_type +
-                '(' + metric_name + ') at: ' + str(average))
-
-    if average > scale_up_threshold:
+    if result == 0:
+        logger.info('Cluster within target paramters')
+    elif result > 0:
         try:
             logger.info('Above Threshold - Scaling Up')
             scale_policy_id = common.get_group_value(config_data, group,
@@ -226,7 +133,7 @@ def autoscale(group, config_data, args):
                             + scale_policy_id + ')')
         except Exception, e:
             logger.warning('Scale up: %s' % str(e))
-    elif average < scale_down_threshold:
+    else:
         try:
             logger.info('Below Threshold - Scaling Down')
             scale_policy_id = common.get_group_value(config_data, group,
@@ -238,14 +145,10 @@ def autoscale(group, config_data, args):
                 common.webhook_call(config_data, group, 'scale_down', 'post')
             else:
                 logger.info('Scale down prevented by --dry-run')
-                logger.info('Scale down policy executed (' +
-                            scale_policy_id + ')')
+                logger.info('Scale down policy executed (' + scale_policy_id + ')')
 
         except Exception, e:
             logger.warning('Scale down: %s' % str(e))
-
-    else:
-        logger.info('Cluster within target paramters')
 
 
 def parse_args():
