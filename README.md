@@ -8,8 +8,6 @@ Can be used and installed on the auto-scale group members or on a dedicated mana
 
 [![Stories in Ready](https://badge.waffle.io/boxidau/rax-autoscaler.svg?label=ready&title=Ready)](http://waffle.io/boxidau/rax-autoscaler)
 
-*ATTENTION!* *rax-autoscaler* is in early development stage. Use with caution.
-
 ## Installation
 
 ```
