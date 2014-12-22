@@ -40,9 +40,10 @@ class Raxmon(object):
         """
         This function decides to scale up or scale down
 
-        :returns: 1 scale up
-                  0 do nothing
-                 -1 scale down
+        :returns: 1    scale up
+                  0    do nothing
+                 -1    scale down
+                  None No data available
         """
         logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ class Raxmon(object):
 
         if len(results) == 0:
             logger.error('No data available')
-            return 1
+            return None 
         else:
             average = sum(results)/len(results)
             scale_up_threshold = self.scaleup
