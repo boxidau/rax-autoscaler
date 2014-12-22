@@ -115,8 +115,10 @@ def autoscale(group, config_data, args):
 
     result = monitor.make_decision()
 
-    if result == 0:
-        logger.info('Cluster within target paramters')
+    if result is None:
+            return result
+    elif result == 0:
+            logger.info('Cluster within target paramters')
     elif result > 0:
         try:
             logger.info('Above Threshold - Scaling Up')
@@ -126,11 +128,11 @@ def autoscale(group, config_data, args):
             if not args['dry_run']:
                 common.webhook_call(config_data, group, 'scale_up', 'pre')
                 scale_policy.execute()
+                logger.info('Scale up policy executed ('
+                            + scale_policy_id + ')')
                 common.webhook_call(config_data, group, 'scale_up', 'post')
             else:
                 logger.info('Scale up prevented by --dry-run')
-                logger.info('Scale up policy executed ('
-                            + scale_policy_id + ')')
         except Exception, e:
             logger.warning('Scale up: %s' % str(e))
     else:
@@ -142,10 +144,10 @@ def autoscale(group, config_data, args):
             if not args['dry_run']:
                 common.webhook_call(config_data, group, 'scale_down', 'pre')
                 scale_policy.execute()
+                logger.info('Scale down policy executed (' + scale_policy_id + ')')
                 common.webhook_call(config_data, group, 'scale_down', 'post')
             else:
                 logger.info('Scale down prevented by --dry-run')
-                logger.info('Scale down policy executed (' + scale_policy_id + ')')
 
         except Exception, e:
             logger.warning('Scale down: %s' % str(e))

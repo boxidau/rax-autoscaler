@@ -23,9 +23,7 @@ import os
 import pyrax
 import sys
 import pyrax.exceptions as pexc
-from termcolor import colored
 import ConfigParser
-import subprocess
 import datetime
 import json
 import requests
@@ -400,6 +398,7 @@ def get_scaling_group(group, config_data):
         return
     # Check active server(s) in scaling group
     if len(scalingGroup.get_state()['active']) == 0:
+        logger.warning('Unable to find any active server in scaling group')
         return
     else:
         logger.info('Server(s) in scaling group: %s' %
