@@ -359,7 +359,7 @@ def scaling_group_servers(sgid):
 def get_plugin_config(config, group, plugin):
         """This function returns the plugin section associated with a autoscale_group
 
-        :type config: object
+          :type config: dict
           :param group: group name
           :param plugin: plugin name
           :param config: json configuration data

@@ -293,3 +293,12 @@ class CommonTest(unittest.TestCase):
 
         common.webhook_call(config, 'group0', 'scale_up', 'does not exist')
         self.assertEqual(post_mock.call_count, 0)
+
+    def test_is_ipv4(self):
+        self.assertEqual(common.is_ipv4('127.0.0.1'), True)
+        self.assertEqual(common.is_ipv4('1.2.3.4'), True)
+        self.assertEqual(common.is_ipv4('100.200.230.1'), True)
+        self.assertEqual(common.is_ipv4('::1'), False)
+        self.assertEqual(common.is_ipv4('100.200.300.400'), False)
+        self.assertEqual(common.is_ipv4('hello'), False)
+        self.assertEqual(common.is_ipv4('1.2.3.4.5'), False)
