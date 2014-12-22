@@ -47,7 +47,9 @@ class Raxmon(object):
         """
         logger = logging.getLogger(__name__)
 
-        for s_id in self.scaling_group.get_state()['active']:
+        active_servers = self.scaling_group.get_state()['active']
+
+        for s_id in active_servers:
             self.add_cm_check(s_id, self.metric_name, self.check_type, self.check_config)
 
         logger.info('Gathering Monitoring Data')
@@ -62,7 +64,7 @@ class Raxmon(object):
 
         for ent in entities:
             # Check if the entity is also in the scaling group
-            if ent.agent_id in self.scaling_group.get_state()['active']:
+            if ent.agent_id in active_servers:
                 ent_checks = ent.list_checks()
                 # Loop through checks to find checks of the correct type
                 for check in ent_checks:
