@@ -346,12 +346,13 @@ def scaling_group_servers(sgid):
     :type name: str
 
     """
+    logger = get_logger()
     a = pyrax.autoscale
     try:
         sg = a.get(sgid)
         return sg
     except:
-        logging.error('Unable to find scaling group with id:%s' % sgid)
+        logger.error('Unable to find scaling group with id:%s' % sgid)
         return
 
 
@@ -409,24 +410,6 @@ def get_scaling_group(group, config_data):
     logger.info('Current Active Servers: ' +
                 str(scalingGroup.get_state()['active_capacity']))
     return scalingGroup
-
-
-def get_server_ipv4(server_id, _type='public'):
-    """ It gets public IP v4 server address
-
-    :param server_id: server id
-    :type name: str
-
-    """
-    server = get_server(server_id)
-    if server is None:
-        return None
-    try:
-        return [i for i in server.networks[_type] if is_ipv4(i)][0]
-    except KeyError:
-        msg = 'server (%s) has no network %s' % (server_id, _type)
-        logging.warning(msg)
-        return None
 
 
 def is_ipv4(address):
