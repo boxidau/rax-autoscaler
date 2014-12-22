@@ -48,7 +48,7 @@ class Raxmon(object):
         logger = logging.getLogger(__name__)
 
         for s_id in self.scaling_group.get_state()['active']:
-            self.add_cm_check(s_id, self.check_type, self.check_config)
+            self.add_cm_check(s_id, self.metric_name, self.check_type, self.check_config)
 
         logger.info('Gathering Monitoring Data')
 
@@ -86,7 +86,7 @@ class Raxmon(object):
 
         if len(results) == 0:
             logger.error('No data available')
-            return None 
+            return None
         else:
             average = sum(results)/len(results)
             scale_up_threshold = self.scaleup
@@ -111,7 +111,7 @@ class Raxmon(object):
             logger.info('Cluster within target paramters')
             return 0
 
-    def add_cm_check(self, server_id, check_type, check_config):
+    def add_cm_check(self, server_id, metric_name, check_type, check_config):
         """This function adds Cloud Monitoring cpu check to a server,
            if it is not already present
 
@@ -121,7 +121,6 @@ class Raxmon(object):
                     1 -- Success
         """
         logger = logging.getLogger(__name__)
-        global check_name
         try:
             entity = self.get_entity(server_id)
 
@@ -136,7 +135,7 @@ class Raxmon(object):
             if not exist_check:
                 cm = pyrax.cloud_monitoring
                 chk = cm.create_check(entity,
-                                      label=check_name + '_' + check_type,
+                                      label=metric_name + '_' + check_type,
                                       check_type=check_type,
                                       details=check_config,
                                       period=60, timeout=30,
