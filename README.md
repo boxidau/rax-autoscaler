@@ -8,8 +8,6 @@ Can be used and installed on the auto-scale group members or on a dedicated mana
 
 [![Stories in Ready](https://badge.waffle.io/boxidau/rax-autoscaler.svg?label=ready&title=Ready)](http://waffle.io/boxidau/rax-autoscaler) [![Documentation Status](https://readthedocs.org/projects/rax-autoscaler/badge/?version=latest)](https://readthedocs.org/projects/rax-autoscaler/) [![Travis CI status](https://travis-ci.org/boxidau/rax-autoscaler.svg)](https://travis-ci.org/boxidau/rax-autoscaler/builds)
 
-*ATTENTION!* *rax-autoscaler* is in early development stage. Use with caution.
-
 ## Installation
 
 ```
