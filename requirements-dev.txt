@@ -3,3 +3,4 @@ pep8
 pyrax
 python-swiftclient
 termcolor
+netifaces>=0.10.4
