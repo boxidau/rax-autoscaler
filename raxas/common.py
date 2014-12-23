@@ -272,17 +272,7 @@ def webhook_call(config_data, group, policy, key):
         return None
 
     try:
-        group_config = config_data['autoscale_groups'][group]
-        plugin_config = get_plugin_config(config_data, group, 'raxmon')
-        data = json.dumps({
-            'group_id': group_config['group_id'],
-            'scale_up_policy': group_config['scale_up_policy'],
-            'scale_down_policy': group_config['scale_down_policy'],
-            'check_type': plugin_config['check_type'],
-            'metric_name': plugin_config['metric_name'],
-            'scale_up_threshold': plugin_config['scale_up_threshold'],
-            'scale_down_threshold': plugin_config['scale_down_threshold']
-        })
+        data = json.dumps(get_plugin_config(config_data, group))
     except KeyError as error:
         logger.error('Cannot build webhook data. invalid key: %s' % error)
         return None
@@ -356,24 +346,22 @@ def scaling_group_servers(sgid):
         return
 
 
-def get_plugin_config(config, group, plugin):
+def get_plugin_config(config, group):
         """This function returns the plugin section associated with a autoscale_group
 
           :type config: dict
           :param group: group name
-          :param plugin: plugin name
           :param config: json configuration data
           :returns: value associated with key
 
         """
         logger = get_logger()
         try:
-            value = config['autoscale_groups'][group]['plugins'][plugin]
+            value = config['autoscale_groups'][group]['plugins']
             if value is not None:
                 return value
         except KeyError:
-            logger.error("Error: unable to get plugin values for '" + plugin +
-                         "' from group '" + group + "'")
+            logger.error("Error: unable to get plugin values from group %s" % group)
 
         return None
 

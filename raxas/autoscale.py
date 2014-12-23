@@ -31,7 +31,8 @@ from colouredconsolehandler import ColouredConsoleHandler
 from auth import Auth
 import subprocess
 from version import return_version
-from core_plugins.raxmon import Raxmon
+# from core_plugins.raxmon import Raxmon
+from stevedore.named import NamedExtensionManager
 
 
 # CHECK logging.conf
@@ -110,10 +111,17 @@ def autoscale(group, config_data, args):
             # Cluster state unknown return error.
             return 1
 
-    monitor = Raxmon(scalingGroup,
-                     common.get_plugin_config(config_data, group, "raxmon"), args)
+    plugin_config = common.get_plugin_config(config_data, group)
+    mgr = NamedExtensionManager(
+        namespace='raxas.ext',
+        names=plugin_config.keys(),
+        invoke_on_load=True,
+        invoke_args=(scalingGroup,
+                     plugin_config,
+                     args)
+        )
 
-    result = monitor.make_decision()
+    result = sum(mgr.map(lambda x: x.obj.make_decision()))
 
     if result is None:
             return result

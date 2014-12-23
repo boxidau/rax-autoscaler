@@ -40,9 +40,11 @@ teddy.schmitz@rackspace.com, jon.walton@rackspace.com''',
     data_files=[('config', ['config/config-template.json',
                             'config/logging.conf']), ],
     description='Rackspace Auto Scale made easy',
+    provides=['raxas.ext'],
     entry_points={
         "console_scripts": ['autoscale = raxas.autoscale:main',
-                            'autoscale-config = raxas.autoscale_config:main']
+                            'autoscale-config = raxas.autoscale_config:main'],
+        "raxas.ext": ['raxmon = raxas.core_plugins.raxmon:Raxmon']
     },
     keywords='rax rackspace autoscale scaling devops cloud openstack',
     maintainer='Simone Soldateschi',

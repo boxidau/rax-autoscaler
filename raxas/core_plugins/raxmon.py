@@ -22,12 +22,16 @@ import logging
 import random
 import time
 import pyrax
-import raxas.common as common
+from raxas.core_plugins.base import PluginBase
 
 
-class Raxmon(object):
+class Raxmon(PluginBase):
 
     def __init__(self, scaling_group, config, args):
+        super(Raxmon, self).__init__(scaling_group, config, args)
+
+        config = config['raxmon']
+
         self.scale_up_threshold = config.get('scale_up_threshold', 0.6)
         self.scale_down_threshold = config.get('scale_down_threshold', 0.4)
         self.check_config = config.get('check_config', {})
