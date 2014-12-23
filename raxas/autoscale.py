@@ -120,6 +120,7 @@ def autoscale(group, config_data, args):
                      plugin_config,
                      args)
         )
+    logger.info('Loaded plugins: %s' % mgr.names())
 
     result = sum(mgr.map(lambda x: x.obj.make_decision()))
 
