@@ -50,11 +50,11 @@ def check_file(fname):
     if os.path.isfile(file_abspath) and os.access(file_abspath, os.R_OK):
         return file_abspath
     else:
-        preDefinedPath = '/etc/rax-autoscaler/'+fname
+        predefined_path = '/etc/rax-autoscaler/'+fname
         # Check in /etc/rax-autoscaler/config path
-        if os.path.isfile(preDefinedPath):
-            if os.access(preDefinedPath, os.R_OK):
-                return preDefinedPath
+        if os.path.isfile(predefined_path):
+            if os.access(predefined_path, os.R_OK):
+                return predefined_path
     # Either file is missing or is not readable
     return
 
@@ -209,7 +209,7 @@ def get_group_value(config, group, key):
     """This function returns value in autoscale_groups section associated with
        provided key.
 
-    :type config: object
+      :type config: dict
       :param group: group name
       :param config: json configuration data
       :param key: key name
@@ -300,7 +300,6 @@ def exit_with_error(msg):
     """This function prints error message and exit with error.
 
     :param msg: error message
-    :type name: str
     :returns: 1 (int) -- the return code
 
     """

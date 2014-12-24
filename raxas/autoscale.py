@@ -115,7 +115,7 @@ def autoscale(group, config_data, args):
     if result is None:
             return result
     elif result == 0:
-            logger.info('Cluster within target paramters')
+            logger.info('Cluster within target parameters')
     elif result > 0:
         try:
             logger.info('Above Threshold - Scaling Up')
