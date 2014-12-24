@@ -22,7 +22,7 @@
 import pyrax
 import argparse
 import logging.config
-import subprocess
+import socket
 
 from raxas import common
 from raxas.colouredconsolehandler import ColouredConsoleHandler
@@ -216,8 +216,7 @@ def main():
         else:
             logger.debug("Getting system hostname")
             try:
-                sysout = subprocess.Popen(['hostname'], stdout=subprocess.PIPE)
-                hostname = (sysout.communicate()[0]).strip()
+                hostname = socket.gethostname()
                 if '-' in hostname:
                     hostname = hostname.rsplit('-', 1)[0]
 
