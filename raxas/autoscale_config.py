@@ -18,14 +18,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import common
 import pyrax
 import argparse
 from pyrax.exceptions import NoSuchContainer, NoSuchObject
 import logging.config
-from colouredconsolehandler import ColouredConsoleHandler
-from auth import Auth
-from version import return_version
+from raxas import common
+from raxas.colouredconsolehandler import ColouredConsoleHandler
+from raxas.auth import Auth
+from raxas.version import return_version
 
 # CHECK logging.conf
 logging_config = common.check_file('logging.conf')

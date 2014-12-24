@@ -22,7 +22,6 @@ import logging
 import random
 import time
 import pyrax
-import raxas.common as common
 
 
 class Raxmon(object):

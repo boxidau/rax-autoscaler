@@ -19,19 +19,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import common
 import pyrax
 import argparse
-import time
-import os
-import sys
 import logging.config
-import random
-from colouredconsolehandler import ColouredConsoleHandler
-from auth import Auth
 import subprocess
-from version import return_version
-from core_plugins.raxmon import Raxmon
+
+from raxas import common
+from raxas.colouredconsolehandler import ColouredConsoleHandler
+from raxas.auth import Auth
+from raxas.version import return_version
+from raxas.core_plugins.raxmon import Raxmon
 
 
 # CHECK logging.conf
@@ -133,7 +130,7 @@ def autoscale(group, config_data, args):
                 common.webhook_call(config_data, group, 'scale_up', 'post')
             else:
                 logger.info('Scale up prevented by --dry-run')
-        except Exception, e:
+        except Exception as e:
             logger.warning('Scale up: %s' % str(e))
     else:
         try:
@@ -149,7 +146,7 @@ def autoscale(group, config_data, args):
             else:
                 logger.info('Scale down prevented by --dry-run')
 
-        except Exception, e:
+        except Exception as e:
             logger.warning('Scale down: %s' % str(e))
 
 
@@ -226,7 +223,7 @@ def main():
 
                 group_value = config_data["autoscale_groups"][hostname]
                 as_group = hostname
-            except Exception, e:
+            except Exception as e:
                 logger.debug("Failed to get hostname: %s" % str(e))
                 logger.warning("Multiple group found in config file, "
                                "please use 'as-group' option")

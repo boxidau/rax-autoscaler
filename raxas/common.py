@@ -22,9 +22,6 @@ from __future__ import print_function
 import os
 import pyrax
 import sys
-import pyrax.exceptions as pexc
-import ConfigParser
-import datetime
 import json
 import requests
 import logging
@@ -75,7 +72,7 @@ def get_config(config_file):
         json_data = open(config_file)
         data = json.load(json_data)
         return data
-    except Exception, e:
+    except Exception as e:
         logger.error("Error: " + str(e))
 
     return None
@@ -293,7 +290,7 @@ def webhook_call(config_data, group, policy, key):
             response = requests.post(url, json=data)
             logger.info("Received status code %d from url: '%s'"
                         % (response.status_code, url))
-        except Exception, e:
+        except Exception as e:
             logger.warning(str(e))
 
     return None
