@@ -310,15 +310,15 @@ def exit_with_error(msg):
             log_file = logger.root.handlers[0].baseFilename
             logger.info('completed with an error: %s' % log_file)
         except:
-            print ('(info) rax-autoscale completed with an error')
+            print('(info) rax-autoscale completed with an error')
     else:
         try:
             logger.error(msg)
             log_file = logger.root.handlers[0].baseFilename
             logger.info('completed with an error: %s' % log_file)
         except:
-            print ('(error) %s' % msg)
-            print ('(info) rax-autoscale completed with an error')
+            print('(error) %s' % msg)
+            print('(info) rax-autoscale completed with an error')
 
     exit(1)
 
@@ -339,7 +339,6 @@ def scaling_group_servers(sgid):
     """ list servers' id in scaling group sgid
 
     :param sgid: scaling group id
-    :type name: str
 
     """
     logger = get_logger()
