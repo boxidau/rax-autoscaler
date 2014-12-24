@@ -22,9 +22,6 @@ from __future__ import print_function
 import os
 import pyrax
 import sys
-import pyrax.exceptions as pexc
-import ConfigParser
-import datetime
 import json
 import requests
 import logging
@@ -53,11 +50,11 @@ def check_file(fname):
     if os.path.isfile(file_abspath) and os.access(file_abspath, os.R_OK):
         return file_abspath
     else:
-        preDefinedPath = '/etc/rax-autoscaler/'+fname
+        predefined_path = '/etc/rax-autoscaler/'+fname
         # Check in /etc/rax-autoscaler/config path
-        if os.path.isfile(preDefinedPath):
-            if os.access(preDefinedPath, os.R_OK):
-                return preDefinedPath
+        if os.path.isfile(predefined_path):
+            if os.access(predefined_path, os.R_OK):
+                return predefined_path
     # Either file is missing or is not readable
     return
 
@@ -75,7 +72,7 @@ def get_config(config_file):
         json_data = open(config_file)
         data = json.load(json_data)
         return data
-    except Exception, e:
+    except Exception as e:
         logger.error("Error: " + str(e))
 
     return None
@@ -212,7 +209,7 @@ def get_group_value(config, group, key):
     """This function returns value in autoscale_groups section associated with
        provided key.
 
-    :type config: object
+      :type config: dict
       :param group: group name
       :param config: json configuration data
       :param key: key name
@@ -293,7 +290,7 @@ def webhook_call(config_data, group, policy, key):
             response = requests.post(url, json=data)
             logger.info("Received status code %d from url: '%s'"
                         % (response.status_code, url))
-        except Exception, e:
+        except Exception as e:
             logger.warning(str(e))
 
     return None
@@ -303,7 +300,6 @@ def exit_with_error(msg):
     """This function prints error message and exit with error.
 
     :param msg: error message
-    :type name: str
     :returns: 1 (int) -- the return code
 
     """
@@ -314,15 +310,15 @@ def exit_with_error(msg):
             log_file = logger.root.handlers[0].baseFilename
             logger.info('completed with an error: %s' % log_file)
         except:
-            print ('(info) rax-autoscale completed with an error')
+            print('(info) rax-autoscale completed with an error')
     else:
         try:
             logger.error(msg)
             log_file = logger.root.handlers[0].baseFilename
             logger.info('completed with an error: %s' % log_file)
         except:
-            print ('(error) %s' % msg)
-            print ('(info) rax-autoscale completed with an error')
+            print('(error) %s' % msg)
+            print('(info) rax-autoscale completed with an error')
 
     exit(1)
 
@@ -343,7 +339,6 @@ def scaling_group_servers(sgid):
     """ list servers' id in scaling group sgid
 
     :param sgid: scaling group id
-    :type name: str
 
     """
     logger = get_logger()
