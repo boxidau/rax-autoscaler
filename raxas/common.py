@@ -67,13 +67,13 @@ def get_config(config_file):
 
     """
     logger = get_logger()
-    logger.info("Loading config file: '%s'" % config_file)
+    logger.info('Loading config file: "%s"', config_file)
     try:
         json_data = open(config_file)
         data = json.load(json_data)
         return data
     except Exception as e:
-        logger.error("Error: " + str(e))
+        logger.error("Error: %s", e)
 
     return None
 
@@ -112,8 +112,7 @@ def read_uuid_cache():
                 uuid = UUID(line)
                 return str(uuid)
             except ValueError:
-                logger.info('invalid uuid found in %s : %s'
-                            % (file_path, line))
+                logger.info('invalid uuid found in %s : %s', file_path, line)
                 continue
 
     return None
@@ -127,7 +126,7 @@ def write_uuid_cache(uuid):
             logger.info('updating uuid cache /dev/shm/.raxas-uuid.cache')
             cache_file.write('%s\n' % uuid)
     except IOError as error:
-        logger.error('unable to write uuid cache file:%s' % error.args)
+        logger.error('unable to write uuid cache file: %s', error.args)
 
 
 def get_machine_uuid(scaling_group):
@@ -147,7 +146,7 @@ def get_machine_uuid(scaling_group):
 
     uuid = read_uuid_cache()
     if uuid is not None:
-        logger.info('found server UUID from cache: %s' % uuid)
+        logger.info('found server UUID from cache: %s', uuid)
         return uuid
 
     # if we didn't get anything from any cache files, we'll loop through the
@@ -172,7 +171,7 @@ def get_machine_uuid(scaling_group):
                       for ip in network]
         matching_ips = set(server_ips).intersection(local_ips)
         if len(matching_ips) > 0:
-            logger.info('found uuid from matching ip address: %s' % server.id)
+            logger.info('found uuid from matching ip address: %s', server.id)
             write_uuid_cache(server.id)
             return server.id
 
@@ -199,8 +198,7 @@ def get_user_value(args, config, key):
         else:
             value = args[key]
     except:
-        logger.error("Invalid config, '" + key +
-                     "' key not found in authentication section")
+        logger.error('Invalid config. Key: "%s" not found in authentication section', key)
 
     return value
 
@@ -222,8 +220,7 @@ def get_group_value(config, group, key):
         if value is not None:
             return value
     except:
-        logger.error("Error: unable to get value for key '" + key +
-                     "' from group '" + group + "'")
+        logger.error('Error: unable to get value for key "%s" in group "%s"', key, group)
 
     return None
 
@@ -244,8 +241,7 @@ def get_webhook_value(config, group, key):
         if value is not None:
             return value
     except:
-        logger.warning("Unable to find value for key: '%s' in group '%s'"
-                       % (key, group))
+        logger.error('Error: unable to get value for key "%s" in group "%s"', key, group)
 
     return None
 
@@ -261,11 +257,11 @@ def webhook_call(config_data, group, policy, key):
     """
     logger = get_logger()
 
-    logger.info('Launching %s webhook call' % key)
+    logger.info('Launching %s webhook call', key)
     try:
         urls = get_webhook_value(config_data, group, policy)[key]
     except (KeyError, TypeError):
-        logger.error('Webhook urls for %s cannot be found in config' % key)
+        logger.error('Webhook urls for %s cannot be found in config', key)
         return None
 
     try:
@@ -281,15 +277,15 @@ def webhook_call(config_data, group, policy, key):
             'scale_down_threshold': plugin_config['scale_down_threshold']
         })
     except KeyError as error:
-        logger.error('Cannot build webhook data. invalid key: %s' % error)
+        logger.error('Cannot build webhook data. invalid key: %s', error)
         return None
 
     for url in urls:
-        logger.info("Sending POST request to url: '%s'" % url)
+        logger.info('Sending POST request to url: "%s"', url)
         try:
             response = requests.post(url, json=data)
-            logger.info("Received status code %d from url: '%s'"
-                        % (response.status_code, url))
+            logger.info('Received status code %d from url: "%s"',
+                        response.status_code, url)
         except Exception as e:
             logger.warning(str(e))
 
@@ -308,16 +304,16 @@ def exit_with_error(msg):
     if msg is None:
         try:
             log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: %s' % log_file)
+            logger.info('completed with an error: %s', log_file)
         except:
             print('(info) rax-autoscale completed with an error')
     else:
         try:
             logger.error(msg)
             log_file = logger.root.handlers[0].baseFilename
-            logger.info('completed with an error: %s' % log_file)
+            logger.info('completed with an error: %s', log_file)
         except:
-            print('(error) %s' % msg)
+            print('(error) %s', msg)
             print('(info) rax-autoscale completed with an error')
 
     exit(1)
@@ -331,7 +327,7 @@ def get_server(server_id):
     try:
         return [s for s in cs.list() if s.id == server_id]
     except:
-        logging.info('no cloud server with id: %s' % server_id)
+        logging.info('no cloud server with id: %s', server_id)
         return None
 
 
@@ -347,29 +343,27 @@ def scaling_group_servers(sgid):
         sg = a.get(sgid)
         return sg
     except:
-        logger.error('Unable to find scaling group with id:%s' % sgid)
+        logger.error('Unable to find scaling group with id:%s', sgid)
         return
 
 
 def get_plugin_config(config, group, plugin):
     """This function returns the plugin section associated with a autoscale_group
 
-          :type config: dict
-          :param group: group name
-          :param plugin: plugin name
-          :param config: json configuration data
-          :returns: value associated with key
-
-        """
+      :type config: dict
+      :param group: group name
+      :param plugin: plugin name
+      :param config: json configuration data
+      :returns: value associated with key
+    """
     logger = get_logger()
     try:
         value = config['autoscale_groups'][group]['plugins'][plugin]
         if value is not None:
             return value
     except KeyError:
-        logger.error("Error: unable to get plugin values for '" + plugin +
-                     "' from group '" + group + "'")
-
+        logger.error('Error: unable to get plugin values for key "%s" in group "%s"',
+                     plugin, group)
     return None
 
 
@@ -397,7 +391,7 @@ def get_scaling_group(group, config_data):
         logger.warning('Unable to find any active server in scaling group')
         return
     else:
-        logger.info('Server(s) in scaling group: %s' %
+        logger.info('Server(s) in scaling group: %s',
                     ', '.join(['(, %s)'
                                % s_id
                                for s_id in
