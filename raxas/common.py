@@ -87,7 +87,7 @@ def read_uuid_cache():
                   # spun up with config_drive set to True
                   '/var/lib/cloud/data/instance-id']
 
-    if sys.platform in ['win32', 'cygwin']:
+    if sys.platform.startswith(('win32', 'cygwin')):
         # Windows doesn't have a built in equivalent to /dev/shm so we'll
         # disable file caching for now to ensure we don't have a stale cache
         # if an image is taken of the servers running in the autoscale group
@@ -366,7 +366,7 @@ def get_scaling_group(group, config_data):
     group_id = get_group_value(config_data, group, 'group_id')
     if group_id is None:
         logger.error('Unable to get group_id from config')
-        return
+        return None
 
     try:
         scaling_group = autoscale_api.get(group_id)
@@ -377,12 +377,13 @@ def get_scaling_group(group, config_data):
     server_states = scaling_group.get_state()
     if not server_states.get('active', None):
         logger.warning('Unable to find any active server in scaling group')
-        return None
     else:
         logger.info('Servers in scaling group: %s',
                     ', '.join([s_id for s_id in server_states['active']]))
 
-    logger.info('Current Active Servers: %s', server_states.get('active_capacity', None))
+    logger.info('Current Active Servers: %s/%s',
+                server_states.get('active_capacity', None),
+                server_states.get('desired_capacity', None))
 
     return scaling_group
 
