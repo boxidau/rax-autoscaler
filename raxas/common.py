@@ -370,8 +370,8 @@ def get_scaling_group(group, config_data):
 
     try:
         scaling_group = autoscale_api.get(group_id)
-    except:
-        logger.error('Error: Unable to get scaling group %s', group_id)
+    except pyrax.exc.PyraxException as error:
+        logger.error('Error: Unable to get scaling group %s: %s', group_id, error)
         return None
 
     server_states = scaling_group.get_state()
@@ -380,13 +380,9 @@ def get_scaling_group(group, config_data):
         return None
     else:
         logger.info('Servers in scaling group: %s',
-                    ', '.join(['(, %s)'
-                               % s_id
-                               for s_id in
-                               server_states['active']]))
+                    ', '.join([s_id for s_id in server_states['active']]))
 
-    logger.info('Current Active Servers: %s',
-                server_states.get('active_capacity', None))
+    logger.info('Current Active Servers: %s', server_states.get('active_capacity', None))
 
     return scaling_group
 
