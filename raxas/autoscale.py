@@ -147,7 +147,7 @@ def parse_args():
                         help='Rackspace Cloud account API key')
     parser.add_argument('--config-file', required=False, default='config.json',
                         help='The autoscale configuration .ini file'
-                             '(default: config.json)'),
+                             '(default: config.json)')
     parser.add_argument('--os-region-name', required=False,
                         help='The region to build the servers',
                         choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
@@ -193,55 +193,36 @@ def main():
     if config_data is None:
         common.exit_with_error('Failed to read config file: ' + config_file)
 
+    as_group = args.get('as_group')
+
     # Get group
-    if not args['as_group']:
+    if not as_group:
         if len(config_data['autoscale_groups'].keys()) == 1:
             as_group = config_data['autoscale_groups'].keys()[0]
         else:
             logger.debug("Getting system hostname")
-            try:
-                hostname = socket.gethostname()
-                if '-' in hostname:
-                    hostname = hostname.rsplit('-', 1)[0]
-
-                group_value = config_data["autoscale_groups"][hostname]
-                as_group = hostname
-            except Exception as e:
-                logger.debug("Failed to get hostname: %s" % str(e))
-                logger.warning("Multiple group found in config file, "
-                               "please use 'as-group' option")
-                common.exit_with_error('Unable to identify targeted group')
-    else:
-        try:
-            group_value = config_data["autoscale_groups"][args['as_group']]
-            as_group = args['as_group']
-        except:
-            common.exit_with_error("Unable to find group '"
-                                   + args['as_group'] +
-                                   "' in " + config_file)
+            hostname = socket.gethostname()
+            as_group = hostname.rsplit('-', 1)[0]
 
     username = common.get_user_value(args, config_data, 'os_username')
-    if username is None:
-        common.exit_with_error(None)
     api_key = common.get_user_value(args, config_data, 'os_password')
-    if api_key is None:
-        common.exit_with_error(None)
     region = common.get_user_value(args, config_data, 'os_region_name').upper()
-    if region is None:
+
+    if None in (username, api_key, region):
         common.exit_with_error(None)
 
     session = Auth(username, api_key, region)
 
-    if session.authenticate() is True:
-        rv = autoscale(as_group, config_data, args)
-        if rv is None:
+    if session.authenticate():
+        result = autoscale(as_group, config_data, args)
+        if result is None:
             log_file = None
             if hasattr(logger.root.handlers[0], 'baseFilename'):
                 log_file = logger.root.handlers[0].baseFilename
             if log_file is None:
                 logger.info('completed successfully')
             else:
-                logger.info('completed successfully: %s' % log_file)
+                logger.info('completed successfully: %s', log_file)
         else:
             common.exit_with_error(None)
     else:
