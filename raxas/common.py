@@ -331,22 +331,6 @@ def get_server(server_id):
         return None
 
 
-def scaling_group_servers(sgid):
-    """ list servers' id in scaling group sgid
-
-    :param sgid: scaling group id
-
-    """
-    logger = get_logger()
-    a = pyrax.autoscale
-    try:
-        sg = a.get(sgid)
-        return sg
-    except:
-        logger.error('Unable to find scaling group with id:%s', sgid)
-        return
-
-
 def get_plugin_config(config, group, plugin):
     """This function returns the plugin section associated with a autoscale_group
 
@@ -377,28 +361,34 @@ def get_scaling_group(group, config_data):
     """
 
     logger = get_logger()
+    autoscale_api = pyrax.autoscale
 
     group_id = get_group_value(config_data, group, 'group_id')
     if group_id is None:
-        logger.error('Unable to get group_id from json file')
+        logger.error('Unable to get group_id from config')
         return
 
-    scalingGroup = scaling_group_servers(group_id)
-    if scalingGroup is None:
-        return
-    # Check active server(s) in scaling group
-    if len(scalingGroup.get_state()['active']) == 0:
+    try:
+        scaling_group = autoscale_api.get(group_id)
+    except:
+        logger.error('Error: Unable to get scaling group %s', group_id)
+        return None
+
+    server_states = scaling_group.get_state()
+    if not server_states.get('active', None):
         logger.warning('Unable to find any active server in scaling group')
-        return
+        return None
     else:
-        logger.info('Server(s) in scaling group: %s',
+        logger.info('Servers in scaling group: %s',
                     ', '.join(['(, %s)'
                                % s_id
                                for s_id in
-                               scalingGroup.get_state()['active']]))
-    logger.info('Current Active Servers: ' +
-                str(scalingGroup.get_state()['active_capacity']))
-    return scalingGroup
+                               server_states['active']]))
+
+    logger.info('Current Active Servers: %s',
+                server_states.get('active_capacity', None))
+
+    return scaling_group
 
 
 def is_ipv4(address):

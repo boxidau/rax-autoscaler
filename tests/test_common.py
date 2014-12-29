@@ -302,3 +302,13 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(common.is_ipv4('100.200.300.400'), False)
         self.assertEqual(common.is_ipv4('hello'), False)
         self.assertEqual(common.is_ipv4('1.2.3.4.5'), False)
+
+    def test_get_scaling_group_servers_returns_none_on_invalid_group(self):
+        config = json.loads(self._config_json)
+
+        self.assertEqual(common.get_scaling_group('invalid-group', config), None)
+
+    def test_get_scaling_group_servers_returns_none_on_error(self):
+        config = json.loads(self._config_json)
+
+        self.assertEqual(common.get_scaling_group('group0', config), None)
