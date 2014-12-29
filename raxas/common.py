@@ -10,7 +10,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ def check_file(fname):
     if os.path.isfile(file_abspath) and os.access(file_abspath, os.R_OK):
         return file_abspath
     else:
-        predefined_path = '/etc/rax-autoscaler/'+fname
+        predefined_path = '/etc/rax-autoscaler/' + fname
         # Check in /etc/rax-autoscaler/config path
         if os.path.isfile(predefined_path):
             if os.access(predefined_path, os.R_OK):
@@ -199,8 +199,8 @@ def get_user_value(args, config, key):
         else:
             value = args[key]
     except:
-            logger.error("Invalid config, '" + key +
-                         "' key not found in authentication section")
+        logger.error("Invalid config, '" + key +
+                     "' key not found in authentication section")
 
     return value
 
@@ -329,7 +329,7 @@ def get_server(server_id):
     """
     cs = pyrax.cloudservers
     try:
-        return filter(lambda s: s.id == server_id, [s for s in cs.list()])[0]
+        return [s for s in cs.list() if s.id == server_id]
     except:
         logging.info('no cloud server with id: %s' % server_id)
         return None
@@ -352,7 +352,7 @@ def scaling_group_servers(sgid):
 
 
 def get_plugin_config(config, group, plugin):
-        """This function returns the plugin section associated with a autoscale_group
+    """This function returns the plugin section associated with a autoscale_group
 
           :type config: dict
           :param group: group name
@@ -361,16 +361,16 @@ def get_plugin_config(config, group, plugin):
           :returns: value associated with key
 
         """
-        logger = get_logger()
-        try:
-            value = config['autoscale_groups'][group]['plugins'][plugin]
-            if value is not None:
-                return value
-        except KeyError:
-            logger.error("Error: unable to get plugin values for '" + plugin +
-                         "' from group '" + group + "'")
+    logger = get_logger()
+    try:
+        value = config['autoscale_groups'][group]['plugins'][plugin]
+        if value is not None:
+            return value
+    except KeyError:
+        logger.error("Error: unable to get plugin values for '" + plugin +
+                     "' from group '" + group + "'")
 
-        return None
+    return None
 
 
 def get_scaling_group(group, config_data):
@@ -412,6 +412,7 @@ def is_ipv4(address):
 
     """
     import socket
+
     try:
         socket.inet_aton(address)
         return True

@@ -19,7 +19,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pyrax
 import argparse
 import logging.config
 import socket
@@ -90,7 +89,6 @@ def autoscale(group, config_data, args):
     :param args: user provided arguments
 
     """
-    au = pyrax.autoscale
 
     scalingGroup = common.get_scaling_group(group, config_data)
     if scalingGroup is None:
@@ -113,9 +111,9 @@ def autoscale(group, config_data, args):
     result = monitor.make_decision()
 
     if result is None:
-            return result
+        return result
     elif result == 0:
-            logger.info('Cluster within target parameters')
+        logger.info('Cluster within target parameters')
     elif result > 0:
         try:
             logger.info('Above Threshold - Scaling Up')

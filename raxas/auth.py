@@ -66,7 +66,8 @@ class Auth(object):
                  self._region, self._token_filename, self._token,
                  self._tenant_id))
 
-    def status(self):
+    @staticmethod
+    def status():
         """
         This queries pyrax for values
 
@@ -169,7 +170,7 @@ class Auth(object):
                          'token:%s, tenant_id:%s, region:%s' %
                          (self._token, self._tenant_id, self._region))
             return True
-        except:
+        except AuthenticationFailed:
             logging.info('cannot authenticate with '
                          'token:%s, tenant_id:%s, region:%s' %
                          (self._token, self._tenant_id, self._region))
@@ -208,7 +209,7 @@ class Auth(object):
                          self._token_filename)
             logger.debug(traceback.format_exc())
             return False
-        except:
+        except IOError:
             logger.warning("cannot read token data from file '%s'" %
                            self._token_filename)
             logger.debug(traceback.format_exc())
@@ -234,7 +235,7 @@ class Auth(object):
             with open(self._token_filename, 'w') as f:
                 json.dump(data, f)
             return True
-        except:
+        except IOError:
             logger.error("cannot write data '%s' to file '%s'" %
                          (pprint.pformat(data), self._token_filename))
             logger.debug(traceback.format_exc())
