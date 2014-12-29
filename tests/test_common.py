@@ -115,7 +115,7 @@ class CommonTest(unittest.TestCase):
 
     @patch('__builtin__.open')
     @patch('os.path.isfile', return_value=True)
-    def test_get_machine_uuid_from_cache(self, isfile_mock, open_mock):
+    def test_read_uuid_cache(self, isfile_mock, open_mock):
         open_mock = mock_open(open_mock, read_data='0a6ebf42-d4ff-'
                                                    '4075-9425-ce50dda33955\n')
         file_handle = open_mock()
@@ -149,6 +149,14 @@ class CommonTest(unittest.TestCase):
 
         self.assertEqual(common.read_uuid_cache(), None)
 
+    @patch('sys.platform')
+    def test_read_uuid_cache_returns_none_on_windows(self, platform_mock):
+        platform_mock.startswith.return_value = 'win32'
+        self.assertEqual(common.read_uuid_cache(), None)
+
+        platform_mock.startswith.return_value = 'cygwin'
+        self.assertEqual(common.read_uuid_cache(), None)
+
     @patch('__builtin__.open')
     def test_write_uuid_cache(self, open_mock):
         open_mock = mock_open(open_mock)
@@ -158,6 +166,10 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(file_handle.write.call_count, 1)
         file_handle.write.assert_called_once_with('0a6ebf42-d4ff-4075-9425-'
                                                   'ce50dda33955\n')
+
+    @patch('raxas.common.read_uuid_cache', return_value='1234')
+    def test_get_machine_uuid_from_cache(self, read_cache_mock):
+        self.assertEqual(common.get_machine_uuid(None), '1234')
 
     @patch('raxas.common.read_uuid_cache', return_value=None)
     @patch('raxas.common.write_uuid_cache')
@@ -302,3 +314,49 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(common.is_ipv4('100.200.300.400'), False)
         self.assertEqual(common.is_ipv4('hello'), False)
         self.assertEqual(common.is_ipv4('1.2.3.4.5'), False)
+
+    def test_get_scaling_group_servers_returns_none_on_invalid_group(self):
+        config = json.loads(self._config_json)
+
+        self.assertEqual(common.get_scaling_group('invalid-group', config), None)
+
+    @patch('pyrax.autoscale')
+    def test_get_scaling_group_servers_returns_none_on_error(self, autoscale_mock):
+        autoscale_mock.get.side_effect = pyrax.exc.NoEndpointForService
+
+        config = json.loads(self._config_json)
+
+        self.assertEqual(common.get_scaling_group('group0', config), None)
+
+    @patch('pyrax.autoscale')
+    def test_get_scaling_group_servers_returns_scaling_group(self, autoscale_mock):
+        config = json.loads(self._config_json)
+
+        scaling_group = {
+            'active': [
+                u'12345678-acti-vese-rver-123456789000',
+                u'12345678-acti-vese-rver-123456789001'
+            ],
+            'desired_capacity': 2,
+            'paused': False,
+            'pending_capacity': 0,
+            'active_capacity': 2
+        }
+        autoscale_mock.get.return_value.get_state.return_value = scaling_group
+
+        self.assertNotEqual(common.get_scaling_group('group0', config), None)
+
+    @patch('pyrax.autoscale')
+    def test_get_scaling_group_servers_returns_scaling_group_no_active(self, autoscale_mock):
+        config = json.loads(self._config_json)
+
+        scaling_group = {
+            'active': [],
+            'desired_capacity': 2,
+            'paused': False,
+            'pending_capacity': 2,
+            'active_capacity': 0
+        }
+        autoscale_mock.get.return_value.get_state.return_value = scaling_group
+
+        self.assertNotEqual(common.get_scaling_group('group0', config), None)

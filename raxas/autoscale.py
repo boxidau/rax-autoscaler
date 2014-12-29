@@ -19,19 +19,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import common
-import pyrax
 import argparse
-import time
-import os
-import sys
 import logging.config
-import random
-from colouredconsolehandler import ColouredConsoleHandler
-from auth import Auth
-import subprocess
-from version import return_version
-# from core_plugins.raxmon import Raxmon
+import socket
+
+from raxas import common
+from raxas.colouredconsolehandler import ColouredConsoleHandler
+from raxas.auth import Auth
+from raxas.version import return_version
 from stevedore.named import NamedExtensionManager
 
 
@@ -94,20 +89,19 @@ def autoscale(group, config_data, args):
     :param args: user provided arguments
 
     """
-    au = pyrax.autoscale
 
     scalingGroup = common.get_scaling_group(group, config_data)
     if scalingGroup is None:
         return 1
 
-    logger.info('Cluster Mode Enabled: %s' % str(args['cluster']))
+    logger.info('Cluster Mode Enabled: %s', args.get('cluster', False))
 
     if args['cluster']:
-        rv = is_node_master(scalingGroup)
-        if rv is None:
+        is_master = is_node_master(scalingGroup)
+        if is_master is None:
             # Not a master, no need to proceed further
-            return
-        if rv == 1:
+            return None
+        elif is_master == 1:
             # Cluster state unknown return error.
             return 1
 
@@ -122,44 +116,30 @@ def autoscale(group, config_data, args):
         )
     logger.info('Loaded plugins: %s' % mgr.names())
 
-    result = sum(mgr.map(lambda x: x.obj.make_decision()))
+    scaling_decision = sum(mgr.map(lambda x: x.obj.make_decision()))
+    if scaling_decision <= -1:
+        scaling_decision = -1
+    elif scaling_decision >= 1:
+        scaling_decision = 1
 
-    if result is None:
-            return result
-    elif result == 0:
-            logger.info('Cluster within target paramters')
-    elif result > 0:
-        try:
-            logger.info('Above Threshold - Scaling Up')
-            scale_policy_id = common.get_group_value(config_data, group,
-                                                     'scale_up_policy')
-            scale_policy = scalingGroup.get_policy(scale_policy_id)
-            if not args['dry_run']:
-                common.webhook_call(config_data, group, 'scale_up', 'pre')
-                scale_policy.execute()
-                logger.info('Scale up policy executed ('
-                            + scale_policy_id + ')')
-                common.webhook_call(config_data, group, 'scale_up', 'post')
-            else:
-                logger.info('Scale up prevented by --dry-run')
-        except Exception, e:
-            logger.warning('Scale up: %s' % str(e))
-    else:
-        try:
-            logger.info('Below Threshold - Scaling Down')
-            scale_policy_id = common.get_group_value(config_data, group,
-                                                     'scale_down_policy')
-            scale_policy = scalingGroup.get_policy(scale_policy_id)
-            if not args['dry_run']:
-                common.webhook_call(config_data, group, 'scale_down', 'pre')
-                scale_policy.execute()
-                logger.info('Scale down policy executed (' + scale_policy_id + ')')
-                common.webhook_call(config_data, group, 'scale_down', 'post')
-            else:
-                logger.info('Scale down prevented by --dry-run')
+    scale = {-1: 'down', 1: 'up'}.get(scaling_decision, None)
+    if scale is None:
+        logger.info('Cluster within target parameters')
+        return None
 
-        except Exception, e:
-            logger.warning('Scale down: %s' % str(e))
+    try:
+        logger.info('Threshold reached - Scaling %s', scale.title())
+        scale_policy_id = common.get_group_value(config_data, group, 'scale_%s_policy' % scale)
+        scale_policy = scalingGroup.get_policy(scale_policy_id)
+        if not args['dry_run']:
+            common.webhook_call(config_data, group, 'scale_%s' % scale, 'pre')
+            scale_policy.execute()
+            logger.info('Scale %s policy executed (%s)', scale, scale_policy_id)
+            common.webhook_call(config_data, group, 'scale_%s' % scale, 'post')
+        else:
+            logger.info('Scale %s prevented by --dry-run', scale)
+    except Exception as error:
+        logger.warning('Error scaling %s: %s', scale, error)
 
 
 def parse_args():
@@ -228,14 +208,13 @@ def main():
         else:
             logger.debug("Getting system hostname")
             try:
-                sysout = subprocess.Popen(['hostname'], stdout=subprocess.PIPE)
-                hostname = (sysout.communicate()[0]).strip()
+                hostname = socket.gethostname()
                 if '-' in hostname:
                     hostname = hostname.rsplit('-', 1)[0]
 
                 group_value = config_data["autoscale_groups"][hostname]
                 as_group = hostname
-            except Exception, e:
+            except Exception as e:
                 logger.debug("Failed to get hostname: %s" % str(e))
                 logger.warning("Multiple group found in config file, "
                                "please use 'as-group' option")
