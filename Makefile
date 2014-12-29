@@ -35,7 +35,7 @@ upload: source
 test:
 #	unit2 discover -s tests -t .
 #	python -mpytest weasyprint
-	nosetests -v
+	nosetests --with-coverage --cover-package=raxas
 
 check:
 	find . -name \*.py | grep -v 'conf.py' | xargs pep8 --max-line-length=100
