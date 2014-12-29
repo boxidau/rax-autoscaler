@@ -57,7 +57,7 @@ def parse_args():
                         help='Rackspace Cloud account API key')
     parser.add_argument('--config-file', required=False, default='config.json',
                         help='The name of the configuration file.'
-                             '(default: config.json)'),
+                             '(default: config.json)')
     parser.add_argument('--os-region-name', required=False,
                         help='The region the container is in.',
                         choices=['SYD', 'HKG', 'DFW', 'ORD', 'IAD', 'LON'])
