@@ -236,13 +236,12 @@ class Auth(object):
                 json.dump(data, f)
             return True
         except IOError:
-            logger.error("cannot write data '%s' to file '%s'" %
+            logger.error("cannot write data '%s' to file '%s'",
                          (pprint.pformat(data), self._token_filename))
             logger.debug(traceback.format_exc())
             return False
         except TypeError:
-            logger.error("cannot write data '%s' to file '%s'" %
+            logger.error("cannot write data '%s' to file '%s'",
                          (pprint.pformat(data), self._token_filename))
             logger.debug(traceback.format_exc())
             return False
-
