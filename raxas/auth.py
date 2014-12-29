@@ -59,12 +59,10 @@ class Auth(object):
         """
         This is use for generating logger debug message
         """
-        return ("username: %s, apikey: %s, identity_type: %s, "
-                "region: %s, token_filename: %s, token: %s, "
-                "tenant_id: %s" %
-                (self._username, self._apikey, self._identity_type,
-                 self._region, self._token_filename, self._token,
-                 self._tenant_id))
+        return ("username: %s, apikey: %s, identity_type: %s, region: %s, "
+                "token_filename: %s, token: %s, tenant_id: %s",
+                self._username, self._apikey, self._identity_type, self._region,
+                self._token_filename, self._token, self._tenant_id)
 
     @staticmethod
     def status():
@@ -99,30 +97,27 @@ class Auth(object):
         logger = logging.getLogger(__name__)
         # try to authenticate with token
         if self.load_token():
-            logger.debug("loaded token '%s' from file '%s'" %
-                         (pprint.pformat(self._token), self._token_filename))
+            logger.debug("loaded token '%s' from file '%s'",
+                         pprint.pformat(self._token), self._token_filename)
             if self.authenticate_token():
                 logger.info('authenticated successfully')
-                logger.debug("authenticated with token '%s' from file '%s'" %
-                             (self._token, self._token_filename))
+                logger.debug("authenticated with token '%s' from file '%s'",
+                             self._token, self._token_filename)
                 return True
             else:
-                logger.debug("cannot authenticate with token '%s' "
-                             "from file '%s'"
-                             % (self._token, self._token_filename))
+                logger.debug("cannot authenticate with token '%s' from file '%s'",
+                             self._token, self._token_filename)
         # try to authenticate with credentials
         if self.authenticate_credentials():
             logger.info('authenticated successfully')
-            logger.debug("authenticated with credentials, username:%s,"
-                         "api-key:%s, region:%s, identity_type:%s" %
-                         (self._username, self._apikey, self._region,
-                          self._identity_type))
+            logger.debug("authenticated with credentials, username: %s,"
+                         "api-key: %s, region: %s, identity_type: %s",
+                         self._username, self._apikey, self._region, self._identity_type)
             return True
         else:
-            logger.debug("cannot authenticate with credentials, username:%s, "
-                         "api-key:%s, region:%s, identity_type:%s" %
-                         (self._username, self._apikey, self._region,
-                          self._identity_type))
+            logger.debug("cannot authenticate with credentials, username: %s, "
+                         "api-key: %s, region: %s, identity_type: %s",
+                         self._username, self._apikey, self._region, self._identity_type)
             return False
 
     def authenticate_credentials(self):
@@ -133,19 +128,16 @@ class Auth(object):
         """
         logger = logging.getLogger(__name__)
         logger.debug('authenticating with credentials '
-                     '(identity_type:%s, username:%s, api-key:%s, region=%s)'
-                     % (self._identity_type, self._username, self._apikey,
-                        self._region))
+                     '(identity_type:%s, username:%s, api-key:%s, region=%s)',
+                     self._identity_type, self._username, self._apikey, self._region)
         try:
             pyrax.set_setting("identity_type", self._identity_type)
             pyrax.set_credentials(self._username, self._apikey,
                                   region=self._region)
-            logger.info("authenticated with credentials, username:%s, "
-                        "api-key:%s, region:%s, identity_type:%s" %
-                        (self._username, self._apikey, self._region,
-                         self._identity_type))
-            logger.debug("user authenticated: %s"
-                         % pyrax.identity.authenticated)
+            logger.info("authenticated with credentials, username: %s, "
+                        "api-key: %s, region: %s, identity_type: %s",
+                        self._username, self._apikey, self._region, self._identity_type)
+            logger.debug("user authenticated: %s", pyrax.identity.authenticated)
             if pyrax.identity.authenticated:
                 self._token = pyrax.identity.auth_token
                 self._tenant_id = pyrax.identity.tenant_id
@@ -164,16 +156,13 @@ class Auth(object):
         logger = logging.getLogger(__name__)
         pyrax.set_setting('identity_type', self._identity_type)
         try:
-            pyrax.auth_with_token(self._token, self._tenant_id,
-                                  region=self._region)
-            logging.info('authenticated with '
-                         'token:%s, tenant_id:%s, region:%s' %
-                         (self._token, self._tenant_id, self._region))
+            pyrax.auth_with_token(self._token, self._tenant_id, region=self._region)
+            logging.info('authenticated with token:%s, tenant_id:%s, region:%s',
+                         self._token, self._tenant_id, self._region)
             return True
         except AuthenticationFailed:
-            logging.info('cannot authenticate with '
-                         'token:%s, tenant_id:%s, region:%s' %
-                         (self._token, self._tenant_id, self._region))
+            logging.info('cannot authenticate with token:%s, tenant_id:%s, region:%s',
+                         self._token, self._tenant_id, self._region)
             logger.debug(traceback.format_exc())
             return False
 
@@ -199,27 +188,25 @@ class Auth(object):
         :returns: True or False (Boolean)
         """
         logger = logging.getLogger(__name__)
+
         try:
             with open(self._token_filename, 'r') as f:
                 data = json.load(f)
-            logger.debug("loaded data '%s' from file '%s'" %
-                         (pprint.pformat(data), self._token_filename))
-        except ValueError:
-            logger.error("cannot decode JSON data in token file'%s'" %
-                         self._token_filename)
+
+            logger.debug("loaded data '%s' from file '%s'",
+                         pprint.pformat(data), self._token_filename)
+        except (ValueError, IOError) as error:
+            logger.error("cannot read token data in file '%s': %s",
+                         self._token_filename, error)
             logger.debug(traceback.format_exc())
             return False
-        except IOError:
-            logger.warning("cannot read token data from file '%s'" %
-                           self._token_filename)
-            logger.debug(traceback.format_exc())
-            return False
+
         try:
             self._token = data['token']
             self._tenant_id = data['tenant_id']
             return True
-        except KeyError:
-            logger.error("cannot load token from data: '%s'" % data)
+        except KeyError as error:
+            logger.error("cannot load token from data: '%s': %s", data, error)
             logger.debug(traceback.format_exc())
             return False
 
@@ -231,17 +218,13 @@ class Auth(object):
         """
         logger = logging.getLogger(__name__)
         data = {'token': self._token, 'tenant_id': self._tenant_id}
+
         try:
             with open(self._token_filename, 'w') as f:
                 json.dump(data, f)
             return True
-        except IOError:
-            logger.error("cannot write data '%s' to file '%s'",
-                         pprint.pformat(data), self._token_filename)
-            logger.debug(traceback.format_exc())
-            return False
-        except TypeError:
-            logger.error("cannot write data '%s' to file '%s'",
-                         pprint.pformat(data), self._token_filename)
+        except (TypeError, IOError) as error:
+            logger.error("cannot write data '%s' to file '%s': %s",
+                         pprint.pformat(data), self._token_filename, error)
             logger.debug(traceback.format_exc())
             return False
