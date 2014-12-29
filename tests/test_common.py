@@ -115,7 +115,7 @@ class CommonTest(unittest.TestCase):
 
     @patch('__builtin__.open')
     @patch('os.path.isfile', return_value=True)
-    def test_get_machine_uuid_from_cache(self, isfile_mock, open_mock):
+    def test_read_uuid_cache(self, isfile_mock, open_mock):
         open_mock = mock_open(open_mock, read_data='0a6ebf42-d4ff-'
                                                    '4075-9425-ce50dda33955\n')
         file_handle = open_mock()
@@ -166,6 +166,10 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(file_handle.write.call_count, 1)
         file_handle.write.assert_called_once_with('0a6ebf42-d4ff-4075-9425-'
                                                   'ce50dda33955\n')
+
+    @patch('raxas.common.read_uuid_cache', return_value='1234')
+    def test_get_machine_uuid_from_cache(self, read_cache_mock):
+        self.assertEqual(common.get_machine_uuid(None), '1234')
 
     @patch('raxas.common.read_uuid_cache', return_value=None)
     @patch('raxas.common.write_uuid_cache')
