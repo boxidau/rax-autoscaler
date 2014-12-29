@@ -69,15 +69,15 @@ class Raxmon(object):
                                                         points=2)
                     if len(data) > 0:
                         point = len(data)-1
-                        logger.info('Found metric for: %s, value: %s'
-                                    % (ent.name, str(data[point]['average'])))
+                        logger.info('Found metric for: %s, value: %s',
+                                    ent.name, str(data[point]['average']))
                         results.append(float(data[point]['average']))
                         break
 
             # Restrict number of data points to save on API calls
             if len(results) >= self.args['max_sample']:
-                logger.info('--max-sample value of ' + str(self.args['max_sample']) +
-                            ' reached, not gathering any more statistics')
+                logger.info('--max-sample value of %s reached, not gathering any more statistics',
+                            self.args['max_sample'])
                 break
 
         if len(results) == 0:
@@ -86,8 +86,8 @@ class Raxmon(object):
         else:
             average = sum(results)/len(results)
 
-        logger.info('Cluster average for ' + self.check_type +
-                    '(' + self.metric_name + ') at: ' + str(average))
+        logger.info('Cluster average for %s (%s) at: %s',
+                    self.check_type, self.metric_name, str(average))
 
         if average > self.scale_up_threshold:
             logger.info("Raxmon reports scale up.")
@@ -115,14 +115,14 @@ class Raxmon(object):
 
             if not check_exists:
                 ip_address = entity.ip_addresses.values()[0]
-                logger.debug('server_id:%s, ip_address:%s' % (entity.agent_id, ip_address))
+                logger.debug('server_id: %s, ip_address: %s', entity.agent_id, ip_address)
                 entity.create_check(label='%s_%s' % (self.metric_name, self.check_type),
                                     check_type=self.check_type,
                                     details=self.check_config,
                                     period=60, timeout=30,
                                     target_alias=ip_address)
-                logging.info('ADD - Cloud monitoring check (%s) to server with id: %s'
-                             % (self.check_type, entity.agent_id))
+                logging.info('ADD - Cloud monitoring check (%s) to server with id: %s',
+                             self.check_type, entity.agent_id)
             else:
-                logging.info('SKIP - Cloud monitoring check (%s) already exists on server id: %s'
-                             % (self.check_type, entity.agent_id))
+                logging.info('SKIP - Cloud monitoring check (%s) already exists on server id: %s',
+                             self.check_type, entity.agent_id)
