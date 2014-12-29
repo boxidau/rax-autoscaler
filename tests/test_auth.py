@@ -21,6 +21,7 @@
 import unittest
 from mock import patch, mock_open
 import pyrax
+from pyrax.exceptions import AuthenticationFailed
 from raxas.auth import Auth
 from types import *
 
@@ -86,7 +87,7 @@ class AuthTest(unittest.TestCase):
         auth._token = self.api_key
         auth._token_filename = "token.file"
         with patch('pyrax.auth_with_token', return_value=True) as mocked:
-            mocked.side_effect = Exception
+            mocked.side_effect = pyrax.exceptions.AuthenticationFailed
             self.assertFalse(auth.authenticate_token())
 
     @patch('pyrax.identity', create=True)
