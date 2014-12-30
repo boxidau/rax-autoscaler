@@ -103,7 +103,9 @@ def autoscale(group, config_data, args):
                      common.get_plugin_config(config_data, group, "raxmon"), args)
 
     scaling_decision = monitor.make_decision()
-    if scaling_decision <= -1:
+    if scaling_decision is None:
+        return enums.ScaleEvent.Error
+    elif scaling_decision <= -1:
         scaling_decision = -1
     elif scaling_decision >= 1:
         scaling_decision = 1
