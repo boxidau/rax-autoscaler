@@ -121,8 +121,8 @@ class Raxmon(object):
                                     details=self.check_config,
                                     period=60, timeout=30,
                                     target_alias=ip_address)
-                logging.info('ADD - Cloud monitoring check (%s) to server with id: %s',
-                             self.check_type, entity.agent_id)
+                logger.info('ADD - Cloud monitoring check (%s) to server with id: %s',
+                            self.check_type, entity.agent_id)
             else:
-                logging.info('SKIP - Cloud monitoring check (%s) already exists on server id: %s',
-                             self.check_type, entity.agent_id)
+                logger.info('SKIP - Cloud monitoring check (%s) already exists on server id: %s',
+                            self.check_type, entity.agent_id)
