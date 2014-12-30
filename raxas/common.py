@@ -154,9 +154,9 @@ def get_machine_uuid(scaling_group):
     # ip addresses against what's on *this* server
 
     local_ips = []
-    for interface in netifaces.interfaces():
+    for interface in netifaces.interfaces():  # pylint: disable=E1101
         try:
-            for ip in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
+            for ip in netifaces.ifaddresses(interface)[netifaces.AF_INET]:  # pylint: disable=E1101
                 if ip['addr'] != '127.0.0.1':
                     local_ips.append(ip['addr'])
         except KeyError:
