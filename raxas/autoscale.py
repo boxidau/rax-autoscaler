@@ -23,7 +23,7 @@ import argparse
 import logging.config
 import socket
 
-from raxas import common
+from raxas import common, enums
 from raxas.colouredconsolehandler import ColouredConsoleHandler
 from raxas.auth import Auth
 from raxas.version import return_version
@@ -49,11 +49,8 @@ else:
 def is_node_master(scalingGroup):
     """This function checks scaling group state and determines if node is a master.
 
-    :param scalingGroup: data about servers in scaling group retrieve from
-                         cloudmonitor
-    :returns: 1     : if cluster state is unknown
-              2     : node is a master
-              None  : node is not a master
+    :param scalingGroup: data about servers in scaling group retrieve from cloudmonitor
+    :returns: enums.NodeStatus
 
     """
     masters = []
@@ -61,7 +58,7 @@ def is_node_master(scalingGroup):
 
     if node_id is None:
         logger.error('Failed to get server uuid')
-        return 1
+        return enums.NodeStatus.Unknown
 
     sg_state = scalingGroup.get_state()
     if len(sg_state['active']) == 1:
@@ -71,14 +68,14 @@ def is_node_master(scalingGroup):
         masters.append(sg_state['active'][1])
     else:
         logger.error('Unknown cluster state')
-        return 1
+        return enums.NodeStatus.Unknown
 
     if node_id in masters:
         logger.info('Node is a master, continuing')
-        return 2
+        return enums.NodeStatus.Master
     else:
         logger.info('Node is not a master, nothing to do. Exiting')
-        return
+        return enums.NodeStatus.Slave
 
 
 def autoscale(group, config_data, args):
@@ -87,23 +84,20 @@ def autoscale(group, config_data, args):
     :param group: group name
     :param config_data: json configuration data
     :param args: user provided arguments
-
+    :returns: enums.ScaleEvent
     """
 
     scalingGroup = common.get_scaling_group(group, config_data)
     if scalingGroup is None:
-        return 1
+        logger.error('Unable to get scaling group: %s', group)
+        return enums.ScaleEvent.Error
 
     logger.info('Cluster Mode Enabled: %s', args.get('cluster', False))
 
     if args['cluster']:
         is_master = is_node_master(scalingGroup)
-        if is_master is None:
-            # Not a master, no need to proceed further
-            return None
-        elif is_master == 1:
-            # Cluster state unknown return error.
-            return 1
+        if is_master in [enums.NodeStatus.Slave, enums.NodeStatus.Unknown]:
+            return enums.ScaleEvent.NotMaster
 
     monitor = Raxmon(scalingGroup,
                      common.get_plugin_config(config_data, group, "raxmon"), args)
@@ -117,7 +111,7 @@ def autoscale(group, config_data, args):
     scale = {-1: 'down', 1: 'up'}.get(scaling_decision, None)
     if scale is None:
         logger.info('Cluster within target parameters')
-        return None
+        return enums.ScaleEvent.NoAction
 
     try:
         logger.info('Threshold reached - Scaling %s', scale.title())
@@ -130,8 +124,11 @@ def autoscale(group, config_data, args):
             common.webhook_call(config_data, group, 'scale_%s' % scale, 'post')
         else:
             logger.info('Scale %s prevented by --dry-run', scale)
+
+        return enums.ScaleEvent.Success
     except Exception as error:
-        logger.warning('Error scaling %s: %s', scale, error)
+        logger.error('Error scaling %s: %s', scale, error)
+        return enums.ScaleEvent.Error
 
 
 def parse_args():
@@ -172,30 +169,23 @@ def main():
        execute scaling policy
 
     """
-
     args = parse_args()
-
-    # CONFIG.ini
-    config_file = common.check_file(args['config_file'])
-    if config_file is None:
-        common.exit_with_error("Either file is missing or is "
-                               "not readable: '%s'" % args['config_file'])
-
-    # Show Version
     logger.info(return_version())
-
     for arg in args:
         logger.debug('argument provided by user ' + arg + ' : ' +
                      str(args[arg]))
 
-    # Get data from config.json
+    # CONFIG.ini
+    config_file = common.check_file(args['config_file'])
+    if config_file is None:
+        common.exit_with_error('Either file is missing or is not readable: %s'
+                               % args['config_file'])
+
     config_data = common.get_config(config_file)
     if config_data is None:
         common.exit_with_error('Failed to read config file: ' + config_file)
 
     as_group = args.get('as_group')
-
-    # Get group
     if not as_group:
         if len(config_data['autoscale_groups'].keys()) == 1:
             as_group = config_data['autoscale_groups'].keys()[0]
@@ -206,27 +196,23 @@ def main():
 
     username = common.get_user_value(args, config_data, 'os_username')
     api_key = common.get_user_value(args, config_data, 'os_password')
-    region = common.get_user_value(args, config_data, 'os_region_name').upper()
-
+    region = common.get_user_value(args, config_data, 'os_region_name')
     if None in (username, api_key, region):
-        common.exit_with_error(None)
+        common.exit_with_error('Authentication credentials not set')
+    region = region.upper()
 
     session = Auth(username, api_key, region)
-
-    if session.authenticate():
-        result = autoscale(as_group, config_data, args)
-        if result is None:
-            log_file = None
-            if hasattr(logger.root.handlers[0], 'baseFilename'):
-                log_file = logger.root.handlers[0].baseFilename
-            if log_file is None:
-                logger.info('completed successfully')
-            else:
-                logger.info('completed successfully: %s', log_file)
-        else:
-            common.exit_with_error(None)
-    else:
+    if not session.authenticate():
         common.exit_with_error('Authentication failed')
+
+    scale_result = autoscale(as_group, config_data, args)
+    if scale_result == enums.ScaleEvent.Error:
+        common.exit_with_error(None)
+    else:
+        log_name = None
+        if hasattr(logger.root.handlers[0], 'baseFilename'):
+            log_name = ': ' % logger.root.handlers[0].baseFilename
+        logger.info('completed successfully %s', (log_name if log_name else ''))
 
 
 if __name__ == '__main__':

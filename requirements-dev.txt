@@ -4,3 +4,4 @@ pyrax
 python-swiftclient
 termcolor
 netifaces>=0.10.4
+enum34
