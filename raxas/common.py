@@ -321,24 +321,6 @@ def get_server(server_id):
         return None
 
 
-def get_plugin_config(config, group, plugin):
-    """This function returns the plugin section associated with a autoscale_group
-
-      :type config: dict
-      :param group: group name
-      :param plugin: plugin name
-      :param config: json configuration data
-      :returns: value associated with key
-    """
-    logger = get_logger()
-    try:
-        sg = a.get(sgid)
-        return sg
-    except:
-        logger.error('Unable to find scaling group with id:%s' % sgid)
-        return
-
-
 def get_plugin_config(config, group):
         """This function returns the plugin section associated with a autoscale_group
 
