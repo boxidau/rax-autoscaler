@@ -18,15 +18,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+import unittest2
 from mock import patch, mock_open
 import pyrax
 from pyrax.exceptions import AuthenticationFailed
 from raxas.auth import Auth
-from types import *
 
 
-class AuthTest(unittest.TestCase):
+class AuthTest(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(AuthTest, self).__init__(*args, **kwargs)
         self.username = "AUTHUSER"

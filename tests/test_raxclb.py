@@ -18,7 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+import unittest2
 
 from mock import MagicMock, patch
 from pyrax.exceptions import NotFound
@@ -27,7 +27,7 @@ from pyrax.cloudloadbalancers import CloudLoadBalancer
 from raxas.core_plugins.raxclb import Raxclb
 
 
-class RaxclbTest(unittest.TestCase):
+class RaxclbTest(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(RaxclbTest, self).__init__(*args, **kwargs)
         self.config = {'raxclb': {}}

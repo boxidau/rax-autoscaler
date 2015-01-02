@@ -143,7 +143,7 @@ def main():
         if log_file is None:
             logger.info('completed successfully')
         else:
-            logger.info('completed successfully: %s' % log_file)
+            logger.info('completed successfully: %s', log_file)
     else:
         common.exit_with_error('Authentication failed')
 

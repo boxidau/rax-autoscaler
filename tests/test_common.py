@@ -23,8 +23,8 @@ from __future__ import with_statement
 import os
 import sys
 import json
-import unittest
-from mock import MagicMock, patch, mock_open, call
+import unittest2
+from mock import patch, mock_open
 
 import pyrax
 import pyrax.fakes
@@ -32,7 +32,7 @@ from raxas import common
 from raxas.autoscale import parse_args
 
 
-class CommonTest(unittest.TestCase):
+class CommonTest(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         self._config_json = """
     {
@@ -247,8 +247,7 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(post_mock.call_count, 2)
 
     @patch('requests.post')
-    def test_webhook_should_not_send_request_on_empty_input(self,
-                                                            post_mock):
+    def test_webhook_should_not_send_request_on_empty_input(self, post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, '', '', '')
@@ -256,25 +255,21 @@ class CommonTest(unittest.TestCase):
 
     @patch('requests.post')
     @patch('raxas.common.get_group_value')
-    def test_webhook_should_not_call_on_invalid_group(self,
-                                                      webhook_mock,
-                                                      post_mock):
+    def test_webhook_should_not_call_on_invalid_group(self, webhook_mock, post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, 'group does not exist', 'scale_up', 'pre')
         self.assertEqual(post_mock.call_count, 0)
 
     @patch('requests.post')
-    def test_webhook_should_not_call_on_invalid_policy(self,
-                                                       post_mock):
+    def test_webhook_should_not_call_on_invalid_policy(self, post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, 'group0', 'policy does not exist', 'pre')
         self.assertEqual(post_mock.call_count, 0)
 
     @patch('requests.post')
-    def test_webhook_should_not_call_on_invalid_config(self,
-                                                       post_mock):
+    def test_webhook_should_not_call_on_invalid_config(self, post_mock):
         config = json.loads("""
             {
                 "autoscale_groups": {
@@ -299,8 +294,7 @@ class CommonTest(unittest.TestCase):
         self.assertEqual(post_mock.call_count, 0)
 
     @patch('requests.post')
-    def test_webhook_should_not_call_on_invalid_key(self,
-                                                    post_mock):
+    def test_webhook_should_not_call_on_invalid_key(self, post_mock):
         config = json.loads(self._config_json)
 
         common.webhook_call(config, 'group0', 'scale_up', 'does not exist')
