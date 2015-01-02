@@ -30,7 +30,7 @@ class Raxclb(PluginBase):
     def __init__(self, scaling_group, config, args):
         super(Raxclb, self).__init__(scaling_group, config, args)
 
-        config = config['raxclb']
+        config = config[self.name]
 
         self.scale_up_threshold = config.get('scale_up_threshold', 50)
         self.scale_down_threshold = config.get('scale_down_threshold', 1)
@@ -39,6 +39,10 @@ class Raxclb(PluginBase):
         self.check_time = 2
         self.scaling_group = scaling_group
         self.args = args
+
+    @property
+    def name(self):
+        return 'raxclb'
 
     def make_decision(self):
         """

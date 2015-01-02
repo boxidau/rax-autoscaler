@@ -35,10 +35,13 @@ class PluginBase(object):
         :return:
         """
 
+    @abc.abstractproperty
+    def name(self):
+        """The name of the plugin as it appears in the configuration file."""
+
     @abc.abstractmethod
     def make_decision(self):
-        """
-        This function decides to scale up or scale down
+        """This function decides to scale up or scale down.
 
         :returns: 1    scale up
                   0    do nothing

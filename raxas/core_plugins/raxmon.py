@@ -30,7 +30,7 @@ class Raxmon(PluginBase):
     def __init__(self, scaling_group, config, args):
         super(Raxmon, self).__init__(scaling_group, config, args)
 
-        config = config['raxmon']
+        config = config[self.name]
 
         self.scale_up_threshold = config.get('scale_up_threshold', 0.6)
         self.scale_down_threshold = config.get('scale_down_threshold', 0.4)
@@ -39,6 +39,10 @@ class Raxmon(PluginBase):
         self.check_type = config.get('check_type', 'agent.load_average')
         self.scaling_group = scaling_group
         self.args = args
+
+    @property
+    def name(self):
+        return 'raxmon'
 
     def make_decision(self):
         """
