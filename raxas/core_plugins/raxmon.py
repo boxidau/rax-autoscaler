@@ -26,6 +26,9 @@ from raxas.core_plugins.base import PluginBase
 
 
 class Raxmon(PluginBase):
+    """ Rackspace cloud monitoring plugin.
+
+    """
 
     def __init__(self, scaling_group, config, args):
         super(Raxmon, self).__init__(scaling_group, config, args)

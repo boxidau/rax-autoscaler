@@ -22,6 +22,14 @@ import abc
 
 
 class PluginBase(object):
+    """ All plugins must inherit from this base class.
+
+    from raxas.core_plugins.base import PluginBase
+    class Yourplugin(PluginBase):
+        def __init__(self, scaling_group, config, args):
+        super(Yourplugin, self).__init__(scaling_group, config, args)
+
+    """
 
     __metaclass__ = abc.ABCMeta
 

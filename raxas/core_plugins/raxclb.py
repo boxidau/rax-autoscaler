@@ -26,6 +26,9 @@ from pyrax.exceptions import NotFound
 
 
 class Raxclb(PluginBase):
+    """ Rackspace cloud load balancer plugin.
+
+    """
 
     def __init__(self, scaling_group, config, args):
         super(Raxclb, self).__init__(scaling_group, config, args)
