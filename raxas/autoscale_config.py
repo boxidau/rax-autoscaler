@@ -81,7 +81,7 @@ def download_config_private(config_data, args):
 
     cf = pyrax.cloudfiles
 
-    container_name = common.get_user_value(args, config_data, 'container')
+    container_name = common.get_auth_value(args, config_data, 'container')
     file_name = args['config_file']
     file_directory = args['config_directory']
 
@@ -123,13 +123,13 @@ def main():
 
     config_data = common.get_config(config_file)
 
-    username = common.get_user_value(args, config_data, 'os_username')
+    username = common.get_auth_value(args, config_data, 'os_username')
     if username is None:
         common.exit_with_error('No os_username defined.')
-    api_key = common.get_user_value(args, config_data, 'os_password')
+    api_key = common.get_auth_value(args, config_data, 'os_password')
     if api_key is None:
         common.exit_with_error('No os_password defined.')
-    region = common.get_user_value(args, config_data, 'os_region_name')
+    region = common.get_auth_value(args, config_data, 'os_region_name')
     if region is None:
         common.exit_with_error('No os_region_name defined.')
 

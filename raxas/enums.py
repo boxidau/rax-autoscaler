@@ -35,3 +35,14 @@ class ScaleEvent(enum.Enum):
     Error = 2
     NoAction = 3
     NotMaster = 4
+
+
+class ScaleDirection(enum.Enum):
+    Down = -1
+    Nothing = 0
+    Up = 1
+
+
+class HookType(enum.Enum):
+    Pre = 1
+    Post = 2

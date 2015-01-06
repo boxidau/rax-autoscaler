@@ -23,65 +23,15 @@ from __future__ import with_statement
 import os
 import sys
 import json
-import unittest2
-from mock import patch, mock_open
+from mock import patch, mock_open, MagicMock
 
-import pyrax
-import pyrax.fakes
+from tests.base_test import BaseTest
 from raxas import common
 from raxas.autoscale import parse_args
+from raxas.scaling_group import ScalingGroup
 
 
-class CommonTest(unittest2.TestCase):
-    def __init__(self, *args, **kwargs):
-        self._config_json = """
-    {
-        "auth": {
-            "os_username": "api_username",
-            "os_password": "api_key",
-            "os_region_name": "os_region_name"
-    },
-    "autoscale_groups": {
-        "group0": {
-            "group_id": "group id",
-            "scale_up_policy": "scale up policy id",
-            "scale_down_policy": "scale down policy id",
-            "webhooks": {
-                "scale_up": {
-                    "pre": [
-                        "preup1",
-                        "preup2"
-                    ],
-                    "post": [
-                        "postup1"
-                    ]
-                },
-                "scale_down": {
-                    "pre": [
-                        "predwn1",
-                        "predwn2"
-                    ],
-                    "post": [
-                        "postdwn1"
-                    ]
-                }
-            },
-            "plugins":{
-                "raxmon":{
-                    "scale_up_threshold": 0.6,
-                    "scale_down_threshold": 0.4,
-                    "check_config": {},
-                    "metric_name": "1m",
-                    "check_type": "agent.load_average"
-                        }
-                    }
-                }
-            }
-        }
-        """
-
-        super(CommonTest, self).__init__(*args, **kwargs)
-
+class CommonTest(BaseTest):
     @patch('os.path.isfile', return_value=True)
     @patch('os.access', return_value=True)
     def test_check_file_should_return_abs_path(self, access_mock, isfile_mock):
@@ -175,16 +125,19 @@ class CommonTest(unittest2.TestCase):
     @patch('raxas.common.write_uuid_cache')
     @patch('netifaces.interfaces')
     @patch('netifaces.ifaddresses')
-    @patch('pyrax.autoscale')
     @patch('pyrax.cloudservers')
-    def test_get_machine_uuid(self, cloud_servers_mock, autoscale_mock,
+    def test_get_machine_uuid(self, cloud_servers_mock,
                               ifaddr_mock, interfaces_mock, write_uuid_mock,
                               read_uuid_mock):
 
         uuid = 'eb8f2464-17a4-4796-a1ba-ab635ad287b9'
+        scaling_group = MagicMock(spec=ScalingGroup)
+        scaling_group.plugin_config = {'raxclb': {}}
+        scaling_group.launch_config = {'load_balancers': [{'loadBalancerId': 231231}]}
+        scaling_group.active_servers = [uuid]
+
         ifaddr_mock.return_value = {2: [{'addr': '119.9.94.249'}]}
         interfaces_mock.return_value = ['eth0']
-        autoscale_mock.ScalingGroup.get_state.return_value = {'active': [uuid]}
 
         get_mock = cloud_servers_mock.servers.get.return_value
         get_mock.networks.values.return_value = \
@@ -192,113 +145,26 @@ class CommonTest(unittest2.TestCase):
              ['10.176.68.154']]
         get_mock.id = uuid
 
-        self.assertEqual(common.get_machine_uuid(autoscale_mock.ScalingGroup),
-                         uuid)
+        self.assertEqual(common.get_machine_uuid(scaling_group), uuid)
 
     def test_get_user_value_from_config(self):
         sys.argv = ['/path/to/noserunner.py']
         args = parse_args()
 
         self.assertEqual(
-            common.get_user_value(args, json.loads(self._config_json),
+            common.get_auth_value(args, json.loads(self._config_json),
                                   'os_username'), 'api_username')
         self.assertEqual(
-            common.get_user_value(args, json.loads(self._config_json),
+            common.get_auth_value(args, json.loads(self._config_json),
                                   'os_password'), 'api_key')
         self.assertEqual(
-            common.get_user_value(args, json.loads(self._config_json),
+            common.get_auth_value(args, json.loads(self._config_json),
                                   'os_region_name'), 'os_region_name')
 
-        self.assertEqual(common.get_user_value(args,
+        self.assertEqual(common.get_auth_value(args,
                                                json.loads(self._config_json),
                                                'should raise KeyError'),
                          None)
-
-    def test_get_group_value(self):
-        config = json.loads(self._config_json)
-        self.assertEqual(common.get_group_value(config, 'group0', 'group_id'),
-                         'group id')
-        self.assertEqual(common.get_group_value(config, 'group0',
-                                                'scale_up_policy'),
-                         'scale up policy id')
-
-        self.assertEqual(common.get_group_value(config, 'group0',
-                                                'should raise KeyError'), None)
-
-    def test_get_webhook_value(self):
-        config = json.loads(self._config_json)
-        self.assertEqual(common.get_webhook_value(config, 'group0',
-                                                  'scale_up'),
-                         {'post': ['postup1'], 'pre': ['preup1', 'preup2']})
-        self.assertEqual(common.get_webhook_value(config, 'group0',
-                                                  'scale_down'),
-                         {'post': ['postdwn1'], 'pre': ['predwn1', 'predwn2']})
-
-        self.assertEqual(common.get_webhook_value(config, 'group0',
-                                                  'should raise KeyError'),
-                         None)
-
-    @patch('requests.post')
-    def test_webhook_call(self, post_mock):
-        config = json.loads(self._config_json)
-        post_mock.return_value.status_code = 200
-
-        common.webhook_call(config, 'group0', 'scale_up', 'pre')
-        self.assertEqual(post_mock.call_count, 2)
-
-    @patch('requests.post')
-    def test_webhook_should_not_send_request_on_empty_input(self, post_mock):
-        config = json.loads(self._config_json)
-
-        common.webhook_call(config, '', '', '')
-        self.assertEqual(post_mock.call_count, 0)
-
-    @patch('requests.post')
-    @patch('raxas.common.get_group_value')
-    def test_webhook_should_not_call_on_invalid_group(self, webhook_mock, post_mock):
-        config = json.loads(self._config_json)
-
-        common.webhook_call(config, 'group does not exist', 'scale_up', 'pre')
-        self.assertEqual(post_mock.call_count, 0)
-
-    @patch('requests.post')
-    def test_webhook_should_not_call_on_invalid_policy(self, post_mock):
-        config = json.loads(self._config_json)
-
-        common.webhook_call(config, 'group0', 'policy does not exist', 'pre')
-        self.assertEqual(post_mock.call_count, 0)
-
-    @patch('requests.post')
-    def test_webhook_should_not_call_on_invalid_config(self, post_mock):
-        config = json.loads("""
-            {
-                "autoscale_groups": {
-                    "group0": {
-                        "webhooks": {
-                            "scale_up": {
-                                "pre": [
-                                    "preup1",
-                                    "preup2"
-                                ],
-                                "post": [
-                                    "postup1"
-                                ]
-                            }
-                        }
-                    }
-                }
-            }
-            """)
-
-        common.webhook_call(config, 'group0', 'scale_up', 'pre')
-        self.assertEqual(post_mock.call_count, 0)
-
-    @patch('requests.post')
-    def test_webhook_should_not_call_on_invalid_key(self, post_mock):
-        config = json.loads(self._config_json)
-
-        common.webhook_call(config, 'group0', 'scale_up', 'does not exist')
-        self.assertEqual(post_mock.call_count, 0)
 
     def test_is_ipv4(self):
         self.assertEqual(common.is_ipv4('127.0.0.1'), True)
@@ -308,49 +174,3 @@ class CommonTest(unittest2.TestCase):
         self.assertEqual(common.is_ipv4('100.200.300.400'), False)
         self.assertEqual(common.is_ipv4('hello'), False)
         self.assertEqual(common.is_ipv4('1.2.3.4.5'), False)
-
-    def test_get_scaling_group_servers_returns_none_on_invalid_group(self):
-        config = json.loads(self._config_json)
-
-        self.assertEqual(common.get_scaling_group('invalid-group', config), None)
-
-    @patch('pyrax.autoscale')
-    def test_get_scaling_group_servers_returns_none_on_error(self, autoscale_mock):
-        autoscale_mock.get.side_effect = pyrax.exc.NoEndpointForService
-
-        config = json.loads(self._config_json)
-
-        self.assertEqual(common.get_scaling_group('group0', config), None)
-
-    @patch('pyrax.autoscale')
-    def test_get_scaling_group_servers_returns_scaling_group(self, autoscale_mock):
-        config = json.loads(self._config_json)
-
-        scaling_group = {
-            'active': [
-                u'12345678-acti-vese-rver-123456789000',
-                u'12345678-acti-vese-rver-123456789001'
-            ],
-            'desired_capacity': 2,
-            'paused': False,
-            'pending_capacity': 0,
-            'active_capacity': 2
-        }
-        autoscale_mock.get.return_value.get_state.return_value = scaling_group
-
-        self.assertNotEqual(common.get_scaling_group('group0', config), None)
-
-    @patch('pyrax.autoscale')
-    def test_get_scaling_group_servers_returns_scaling_group_no_active(self, autoscale_mock):
-        config = json.loads(self._config_json)
-
-        scaling_group = {
-            'active': [],
-            'desired_capacity': 2,
-            'paused': False,
-            'pending_capacity': 2,
-            'active_capacity': 0
-        }
-        autoscale_mock.get.return_value.get_state.return_value = scaling_group
-
-        self.assertNotEqual(common.get_scaling_group('group0', config), None)

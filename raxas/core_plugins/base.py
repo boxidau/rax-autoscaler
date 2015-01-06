@@ -34,13 +34,10 @@ class PluginBase(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def __init__(self, scaling_group, config, args):
+    def __init__(self, scaling_group):
         """
 
-        :param scaling_group:
-        :param config:
-        :param args:
-        :return:
+        :param scaling_group: raxas.scaling_group.ScalingGroup
         """
 
     @abc.abstractproperty

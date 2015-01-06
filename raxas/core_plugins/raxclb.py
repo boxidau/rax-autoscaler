@@ -30,10 +30,11 @@ class Raxclb(PluginBase):
 
     """
 
-    def __init__(self, scaling_group, config, args):
-        super(Raxclb, self).__init__(scaling_group, config, args)
+    def __init__(self, scaling_group):
+        super(Raxclb, self).__init__(scaling_group)
 
-        config = config[self.name]
+        self.scaling_group = scaling_group
+        config = scaling_group.plugin_config.get(self.name)
 
         self.scale_up_threshold = config.get('scale_up_threshold', 50)
         self.scale_down_threshold = config.get('scale_down_threshold', 1)
@@ -41,7 +42,6 @@ class Raxclb(PluginBase):
         self.lb_ids = config.get('loadbalancers', [])
         self.check_time = 2
         self.scaling_group = scaling_group
-        self.args = args
 
     @property
     def name(self):
@@ -62,10 +62,13 @@ class Raxclb(PluginBase):
         clb = pyrax.cloud_loadbalancers
 
         if not self.lb_ids:
+            launch_config = self.scaling_group.launch_config
+            if launch_config is None:
+                return None
 
             try:
                 self.lb_ids = [lb.get('loadBalancerId') for lb
-                               in self.scaling_group.get_launch_config().get('load_balancers')]
+                               in launch_config.get('load_balancers')]
             except TypeError:
                 logger.error('No loadbalancer found, please either define a '
                              'loadbalancer to check or add one to the scaling group.')
@@ -75,7 +78,7 @@ class Raxclb(PluginBase):
 
         results = []
 
-        active_server_count = self.scaling_group.state['activeCapacity']
+        active_server_count = self.scaling_group.state['active_capacity']
 
         self.scale_up_threshold = self.scale_up_threshold * active_server_count
         self.scale_down_threshold = self.scale_down_threshold * active_server_count

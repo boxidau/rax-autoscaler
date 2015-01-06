@@ -23,7 +23,6 @@ import os
 import pyrax
 import sys
 import json
-import requests
 import logging
 from uuid import UUID
 import netifaces
@@ -137,8 +136,7 @@ def get_machine_uuid(scaling_group):
     the scaling group in turn and attempt to match the local IP address with
     that of the server object returned from the API
 
-    :param scaling_group: The pyrax scaling group of the current group we
-                          are processing
+    :param scaling_group: raxas.scaling_group.ScalingGroup object
     :return: None if no UUID could be matched against a cache file or the API.
              UUID as a string
     """
@@ -162,9 +160,8 @@ def get_machine_uuid(scaling_group):
         except KeyError:
             continue
 
-    active_servers = scaling_group.get_state()['active']
     servers_api = pyrax.cloudservers
-    for active_uuid in active_servers:
+    for active_uuid in scaling_group.active_servers:
         server = servers_api.servers.get(active_uuid)
 
         server_ips = [ip for network in server.networks.values()
@@ -180,7 +177,7 @@ def get_machine_uuid(scaling_group):
     return None
 
 
-def get_user_value(args, config, key):
+def get_auth_value(args, config, key):
     """This function returns value associated with the key if its available in
        user arguments else in json config file.
 
@@ -201,85 +198,6 @@ def get_user_value(args, config, key):
         logger.error('Invalid config. Key: "%s" not found in authentication section', key)
 
     return value
-
-
-def get_group_value(config, group, key):
-    """This function returns value in autoscale_groups section associated with
-       provided key.
-
-      :type config: dict
-      :param group: group name
-      :param config: json configuration data
-      :param key: key name
-      :returns: value associated with key
-
-    """
-    logger = get_logger()
-    try:
-        value = config['autoscale_groups'][group][key]
-        if value is not None:
-            return value
-    except:
-        logger.error('Error: unable to get value for key "%s" in group "%s"', key, group)
-
-    return None
-
-
-def get_webhook_value(config, group, key):
-    """This function returns value in webhooks section of json file which is
-       associated with provided key.
-
-      :param group: group name
-      :param config: json configuration data
-      :param key: key name
-      :returns: value associated with key
-
-    """
-    logger = get_logger()
-    try:
-        value = config['autoscale_groups'][group]['webhooks'][key]
-        if value is not None:
-            return value
-    except:
-        logger.error('Error: unable to get value for key "%s" in group "%s"', key, group)
-
-    return None
-
-
-def webhook_call(config_data, group, policy, key):
-    """This function makes webhook calls.
-
-      :param config_data: json configuration data
-      :param group: group name
-      :param policy: policy type
-      :param key: key name
-
-    """
-    logger = get_logger()
-
-    logger.info('Launching %s webhook call', key)
-    try:
-        urls = get_webhook_value(config_data, group, policy)[key]
-    except (KeyError, TypeError):
-        logger.error('Webhook urls for %s cannot be found in config', key)
-        return None
-
-    try:
-        data = json.dumps(get_plugin_config(config_data, group))
-    except KeyError as error:
-        logger.error('Cannot build webhook data. invalid key: %s', error)
-        return None
-
-    for url in urls:
-        logger.info('Sending POST request to url: "%s"', url)
-        try:
-            response = requests.post(url, json=data)
-            logger.info('Received status code %d from url: "%s"',
-                        response.status_code, url)
-        except Exception as e:
-            logger.warning(str(e))
-
-    return None
 
 
 def exit_with_error(msg):
@@ -306,7 +224,7 @@ def exit_with_error(msg):
             print('(error) %s', msg)
             print('(info) rax-autoscale completed with an error')
 
-    exit(1)
+    sys.exit(1)
 
 
 def get_server(server_id):
@@ -319,63 +237,6 @@ def get_server(server_id):
     except:
         logging.info('no cloud server with id: %s', server_id)
         return None
-
-
-def get_plugin_config(config, group):
-        """This function returns the plugin section associated with a autoscale_group
-
-          :type config: dict
-          :param group: group name
-          :param config: json configuration data
-          :returns: value associated with key
-
-        """
-        logger = get_logger()
-        try:
-            value = config['autoscale_groups'][group]['plugins']
-            if value is not None:
-                return value
-        except KeyError:
-            logger.error("Error: unable to get plugin values from group %s", group)
-
-        return None
-
-
-def get_scaling_group(group, config_data):
-    """This function checks and gets active servers in scaling group
-
-    :param group: group name
-    :param config_data: json configuration data
-    :returns: scalingGroup if server state is active else null
-
-    """
-
-    logger = get_logger()
-    autoscale_api = pyrax.autoscale
-
-    group_id = get_group_value(config_data, group, 'group_id')
-    if group_id is None:
-        logger.error('Unable to get group_id from config')
-        return None
-
-    try:
-        scaling_group = autoscale_api.get(group_id)
-    except pyrax.exc.PyraxException as error:
-        logger.error('Error: Unable to get scaling group %s: %s', group_id, error)
-        return None
-
-    server_states = scaling_group.get_state()
-    if not server_states.get('active', None):
-        logger.warning('Unable to find any active server in scaling group')
-    else:
-        logger.info('Servers in scaling group: %s',
-                    ', '.join([s_id for s_id in server_states['active']]))
-
-    logger.info('Current Active Servers: %s/%s',
-                server_states.get('active_capacity', None),
-                server_states.get('desired_capacity', None))
-
-    return scaling_group
 
 
 def is_ipv4(address):
