@@ -72,13 +72,13 @@ class AuthTest(unittest2.TestCase):
             self.assertTrue(auth.save_token())
             mocked.assert_called_once_with('token.file', 'w')
 
-    def test_authenticate_token_success(self):
+    @patch('pyrax.auth_with_token', return_value=True)
+    def test_authenticate_token_success(self, mock_token):
         auth = Auth(self.username, self.api_key, self.region)
         auth._tenant_id = self.tenant_id
         auth._token = self.api_key
         auth._token_filename = "token.file"
-        with patch('pyrax.auth_with_token', return_value=True):
-            self.assertTrue(auth.authenticate_token())
+        self.assertTrue(auth.authenticate_token())
 
     def test_authenticate_token_fail(self):
         auth = Auth(self.username, self.api_key, self.region)
@@ -125,16 +125,19 @@ class AuthTest(unittest2.TestCase):
 
         self.assertFalse(auth.authenticate())
 
+    @patch.object(Auth, 'authenticate_credentials', return_value=False)
     @patch.object(Auth, 'load_token', return_value=True)
     @patch.object(Auth, 'authenticate_token', return_value=False)
-    def test_authenticate_token_flow_fail(self, mock_auth, mock_load):
+    def test_authenticate_token_flow_fail(self, mock_auth, mock_load, mock_creds):
         auth = Auth(self.username, self.api_key, self.region)
 
         self.assertFalse(auth.authenticate())
 
+    @patch('pyrax.auth_with_token', side_effect=AuthenticationFailed)
+    @patch.object(Auth, 'authenticate_credentials', return_value=False)
     @patch.object(Auth, 'load_token', return_value=True)
     @patch.object(Auth, 'authenticate_token', return_value=False)
-    def test_authenticate_token_exception(self, mock_auth, mock_load):
+    def test_authenticate_token_exception(self, mock_auth, mock_load, mock_creds, mock_pyrax):
         auth = Auth(self.username, self.api_key, self.region)
 
         self.assertFalse(auth.authenticate())
