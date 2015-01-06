@@ -78,9 +78,8 @@ def autoscale(group, config_data, args):
         )
     logger.info('Loaded plugins: %s' % mgr.names())
 
-    # TODO: so ugly, change later...
     results = [result for result
-               in mgr.map(lambda x: x.obj.make_decision())
+               in mgr.map_method('make_decision')
                if result is not None]
     scaling_decision = sum(results)
     if scaling_decision <= -1:
