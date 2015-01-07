@@ -18,10 +18,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mock import patch, Mock
+from mock import patch, Mock, MagicMock
 from pyrax.autoscale import ScalingGroup as pyrax_ScalingGroup
 from pyrax.fakes import FakeScalingGroup, FakeIdentity
 import pyrax.exceptions
+from raxas.enums import *
+import requests
 
 from tests.base_test import BaseTest
 from raxas.scaling_group import ScalingGroup
@@ -172,7 +174,7 @@ class TestScalingGroup(BaseTest):
 
         scaling_group = ScalingGroup(self.group_config, 'group0')
 
-        self.assertIsNone(scaling_group.active_servers)
+        self.assertEqual([], scaling_group.active_servers)
 
     @patch.object(ScalingGroup, 'state')
     def test_active_servers_returns_from_cache(self, state_mock):
@@ -183,3 +185,126 @@ class TestScalingGroup(BaseTest):
 
         state_mock.__get__ = Mock(return_value='Invalid!')
         self.assertEqual(scaling_group.active_servers, self._state['active'])
+
+    @patch.object(ScalingGroup, 'scaling_group')
+    def test_launch_config_returned_correctly(self, scaling_group_mock):
+        fake_launch_config = {'fake': 'launch_config'}
+        scaling_group_mock.get_launch_config.return_value = fake_launch_config
+
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+
+        self.assertEqual(fake_launch_config, scaling_group.launch_config)
+
+    @patch.object(ScalingGroup, 'scaling_group')
+    def test_launch_config_attribute_exception(self, scaling_group_mock):
+        scaling_group_mock.__get__ = Mock(return_value=None)
+
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+
+        self.assertIsNone(scaling_group.launch_config)
+
+    @patch('raxas.common.get_machine_uuid', return_value=None)
+    def test_is_master_cluster_no_uuid_error(self, get_machine_uuid_mock):
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+
+        self.assertEqual(NodeStatus.Unknown, scaling_group.is_master)
+
+    @patch.object(ScalingGroup, 'active_servers')
+    @patch('raxas.common.get_machine_uuid', return_value=123456)
+    def test_is_master_cluster_invalid_active_error(self,
+                                                    get_machine_uuid_mock,
+                                                    active_servers_mock):
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        active_servers_mock.__get__ = Mock(return_value=[])
+
+        self.assertEqual(NodeStatus.Unknown, scaling_group.is_master)
+
+    @patch.object(ScalingGroup, 'active_servers')
+    @patch('raxas.common.get_machine_uuid', return_value=123456)
+    def test_is_master_cluster_one_active(self, get_machine_uuid_mock, active_servers_mock):
+        active_servers_mock.__get__ = Mock(return_value=[123456])
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+
+        self.assertEqual(NodeStatus.Master, scaling_group.is_master)
+
+    @patch.object(ScalingGroup, 'active_servers')
+    @patch('raxas.common.get_machine_uuid', return_value=123456)
+    def test_is_master_multiple_active_not_master(self, get_machine_uuid_mock, active_servers_mock):
+        active_servers_mock.__get__ = Mock(return_value=[78910, 434987])
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+
+        self.assertEqual(NodeStatus.Slave, scaling_group.is_master)
+
+    @patch('requests.post')
+    def test_webhook_call_status_200(self, post_mock):
+        post_mock.return_value.status_code = 200
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+
+        scaling_group.execute_webhook(ScaleDirection.Up, HookType.Post)
+        self.assertEqual(post_mock.call_count, 1)
+
+    @patch('raxas.common.get_logger')
+    @patch('requests.post')
+    def test_webhook_call_request_exception(self, post_mock, get_logger_mock):
+        logger_mock = MagicMock(autospec=True)
+        get_logger_mock.return_value = logger_mock
+        post_mock.return_value.status_code = 500
+        post_mock.side_effect = requests.exceptions.RequestException
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+
+        scaling_group.execute_webhook(ScaleDirection.Down, HookType.Pre)
+        self.assertEqual(post_mock.call_count, 2)
+        self.assertEqual(logger_mock.error.call_count, 2)
+
+    @patch.object(ScalingGroup, 'active_servers')
+    def test_execute_policy_one_active(self, active_servers_mock):
+        active_servers_mock.__get__ = MagicMock(return_value=[123456])
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        self.assertEqual(ScaleEvent.NoAction, scaling_group.execute_policy(ScaleDirection.Down))
+
+    @patch('pyrax.autoscale')
+    @patch.object(ScalingGroup, 'active_servers')
+    def test_execute_policy_pyrax_error(self, active_servers_mock, autoscale_mock):
+        fake_scaling_group = MagicMock(spec=FakeScalingGroup)
+        fake_scaling_group.get_policy.side_effect = pyrax.exceptions.PyraxException
+        autoscale_mock.get.return_value = fake_scaling_group
+        active_servers_mock.__get__ = MagicMock(return_value=[123456, 124590])
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        self.assertEqual(ScaleEvent.Error, scaling_group.execute_policy(ScaleDirection.Down))
+
+    @patch('pyrax.autoscale')
+    @patch.object(ScalingGroup, 'active_servers')
+    def test_execute_policy_success(self, active_servers_mock, autoscale_mock):
+        fake_scaling_group = MagicMock(spec=FakeScalingGroup)
+        autoscale_mock.get.return_value = fake_scaling_group
+        active_servers_mock.__get__ = MagicMock(return_value=[123456, 124590])
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        self.assertEqual(ScaleEvent.Success, scaling_group.execute_policy(ScaleDirection.Up))
+
+    def test_get_webhook_values_returns_correctly(self):
+        config_value = self.group_config['webhooks']['scale_up']['pre']
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        self.assertEqual(config_value,
+                         scaling_group.get_webhook_values(ScaleDirection.Up, HookType.Pre))
+
+    @patch.object(ScalingGroup, 'check_config')
+    @patch('raxas.common.get_logger')
+    def test_get_webhook_values_key_error(self, get_logger_mock, config_mock):
+        logger_mock = MagicMock(autospec=True)
+        get_logger_mock.return_value = logger_mock
+        config_mock.return_value = {'fake': 'config'}
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        scaling_group.get_webhook_values(ScaleDirection.Up, HookType.Post)
+        self.assertEqual(1, logger_mock.error.call_count)
+
+    def test_get_group_value_returns_correct(self):
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        self.assertEqual(scaling_group.get_group_value('group_id'), self.group_config['group_id'])
+
+    @patch('raxas.common.get_logger')
+    def test_get_group_value_key_error(self, get_logger_mock):
+        logger_mock = MagicMock(autospec=True)
+        get_logger_mock.return_value = logger_mock
+        scaling_group = ScalingGroup(self.group_config, 'group0')
+        self.assertIsNone(scaling_group.get_group_value('fakeKey'))
+        self.assertEqual(1, logger_mock.error.call_count)

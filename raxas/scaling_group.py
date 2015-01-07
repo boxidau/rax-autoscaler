@@ -101,9 +101,9 @@ class ScalingGroup(object):
     def active_servers(self):
         if self._active_servers is None:
             try:
-                self._active_servers = self.state.get('active')
+                self._active_servers = self.state.get('active', [])
             except AttributeError:
-                return None
+                return []
             else:
                 return self._active_servers
         else:
@@ -160,15 +160,15 @@ class ScalingGroup(object):
         """This function returns value in webhooks section of json file which is
            associated with provided key.
 
-          :param policy: policy type (Scale up or Scale down)
-          :param hook: hook type (pre or post)
+          :param policy: raxas.enums.ScaleDirection
+          :param hook: raxas.enums.HookType
           :returns: value associated with key
 
         """
         logger = common.get_logger()
 
-        policy = 'scale_%s' % policy.lower()
-        hook = hook.lower()
+        policy = 'scale_%s' % policy.name.lower()
+        hook = hook.name.lower()
 
         try:
             return self._config['webhooks'][policy][hook]
@@ -187,7 +187,7 @@ class ScalingGroup(object):
         logger = common.get_logger()
 
         logger.info('Executing webhook: scale_%s:%s', policy.name, hook.name)
-        urls = self.get_webhook_values(policy.name, hook.name)
+        urls = self.get_webhook_values(policy, hook)
         data = json.dumps(self._config)
 
         for url in urls:

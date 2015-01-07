@@ -61,8 +61,6 @@ class Raxmon(PluginBase):
         results = []
         cm = pyrax.cloud_monitoring
         active_servers = self.scaling_group.active_servers
-        if active_servers is None:
-            return None
 
         entities = [entity for entity in cm.list_entities()
                     if entity.agent_id in active_servers]
