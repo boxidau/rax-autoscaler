@@ -22,18 +22,30 @@ import logging
 import random
 import time
 import pyrax
+from raxas.core_plugins.base import PluginBase
 
 
-class Raxmon(object):
+class Raxmon(PluginBase):
+    """ Rackspace cloud monitoring plugin.
 
-    def __init__(self, scaling_group, config, args):
+    """
+
+    def __init__(self, scaling_group):
+        super(Raxmon, self).__init__(scaling_group)
+
+        config = scaling_group.plugin_config.get(self.name)
+
         self.scale_up_threshold = config.get('scale_up_threshold', 0.6)
         self.scale_down_threshold = config.get('scale_down_threshold', 0.4)
         self.check_config = config.get('check_config', {})
         self.metric_name = config.get('metric_name', '1m')
         self.check_type = config.get('check_type', 'agent.load_average')
+        self.max_samples = config.get('max_samples', 10)
         self.scaling_group = scaling_group
-        self.args = args
+
+    @property
+    def name(self):
+        return 'raxmon'
 
     def make_decision(self):
         """
@@ -48,7 +60,8 @@ class Raxmon(object):
 
         results = []
         cm = pyrax.cloud_monitoring
-        active_servers = self.scaling_group.get_state()['active']
+        active_servers = self.scaling_group.active_servers
+
         entities = [entity for entity in cm.list_entities()
                     if entity.agent_id in active_servers]
 
@@ -75,9 +88,9 @@ class Raxmon(object):
                         break
 
             # Restrict number of data points to save on API calls
-            if len(results) >= self.args['max_sample']:
-                logger.info('--max-sample value of %s reached, not gathering any more statistics',
-                            self.args['max_sample'])
+            if len(results) >= self.max_samples:
+                logger.info('max_samples value of %s reached, not gathering any more statistics',
+                            self.max_samples)
                 break
 
         if len(results) == 0:

@@ -6,8 +6,10 @@ install:
 - touch README.txt
 - pip install .
 - pip install -r requirements.txt
+- pip install -r requirements-dev.txt
 - pip install pep8
 - pip install coveralls
+
 script:
 - make check
 - make test
